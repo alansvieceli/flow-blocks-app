@@ -6,11 +6,19 @@ Flow Blocks
 
 ## Summary
 
-Flow Blocks is a React Native Expo application built with TypeScript. The project is currently a blank starting point following a spec-first workflow, with no business logic implemented yet.
+Flow Blocks is a React Native Expo application built with TypeScript. It helps a developer who works across multiple teams/projects track and visualize how their time is spent, using local-only storage (no backend, no sync, no auth).
 
 ## Target Problem
 
-To be defined. Document the target problem and core data concepts here once the first product spec is written.
+The user works for multiple teams (e.g. "Equipe X", "Equipe Y") and wants to (1) run a configurable Pomodoro timer per work block, declaring a category and team/project before starting, (2) set scheduled reminders with local notifications, and (3) see where their focus time goes via weekly metrics, an hourly heatmap, and a focus streak.
+
+## Roadmap (specs)
+
+- Spec 003 - Pomodoro Time Tracking: configurable focus/break timer, categories, team/project management, session history.
+- Spec 004 - Reminders: scheduled local notifications, optionally linked to a category/team.
+- Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak.
+
+Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync, monetization, brain dump.
 
 ## Core Product Principles
 
@@ -20,11 +28,14 @@ To be defined. Document the target problem and core data concepts here once the 
 
 ## Core Data Concepts
 
-None yet. Add data concepts as features are implemented.
+- `teams`: user-managed list of teams/projects (id, name).
+- `sessions`: recorded Pomodoro focus/break blocks (category, team, planned/actual duration, timestamps, completed flag).
+- `settings`: default focus/break durations (25/5).
+- `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
 
 ## Primary Navigation
 
-None yet. Add navigation structure as it is implemented.
+To be defined during spec 003 planning. Expected top-level areas: Pomodoro (setup + timer), History, Teams management, Reminders, Dashboard.
 
 ## Current Workflow
 
