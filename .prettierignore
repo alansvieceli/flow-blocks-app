@@ -1,0 +1,10 @@
+android/
+assets/
+.claude/
+coverage/
+dist/
+.expo/
+ios/
+node_modules/
+web-build/
+package-lock.json
