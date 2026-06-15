@@ -14,7 +14,7 @@ Flow Blocks helps a developer who works across multiple teams understand where t
   - Focus duration and break duration (default 25/5 minutes, both editable per session).
   - Category, chosen from a fixed list: `deep work`, `meetings`, `code review`, `admin`.
   - Team/project, chosen from a user-managed list (see Teams management below).
-- Provide a Teams management screen with basic CRUD (add, rename, remove) for teams/projects, persisted locally. Seed with no default teams (user creates their own, e.g. "Equipe X", "Equipe Y").
+- Provide a Teams management screen with basic CRUD (add, rename, remove) for teams/projects, persisted locally. Seed with no default teams (user creates their own, e.g. "Equipe X", "Equipe Y"). Each team has an optional "max weekly %" target (0-100), used by the spec 005 dashboard alert; leave unset (`null`) by default.
 - Provide a Timer screen that:
   - Counts down the configured focus duration.
   - On completion, fires a local notification ("Focus block complete") and automatically starts the configured break duration.
@@ -33,7 +33,7 @@ Flow Blocks helps a developer who works across multiple teams understand where t
 
 ## Data Model (AsyncStorage)
 
-- `teams`: `{ id: string; name: string }[]`
+- `teams`: `{ id: string; name: string; maxWeeklyPercent: number | null }[]`
 - `sessions`: `{ id: string; categoryId: 'deep_work' | 'meetings' | 'code_review' | 'admin'; teamId: string | null; type: 'focus' | 'break'; plannedDurationMinutes: number; actualDurationSeconds: number; startedAt: string; endedAt: string; completed: boolean }[]`
 - `settings`: `{ defaultFocusMinutes: number; defaultBreakMinutes: number }` (defaults: 25 / 5)
 
@@ -41,7 +41,7 @@ Flow Blocks helps a developer who works across multiple teams understand where t
 
 ## Acceptance Criteria
 
-- User can create, rename, and delete teams; the list persists across app restarts.
+- User can create, rename, and delete teams, and optionally set a "max weekly %" target per team; the list persists across app restarts.
 - User can configure focus/break duration on the setup screen; values default to the persisted `settings` (initially 25/5) and changes to `settings` persist for future sessions.
 - Starting a block requires a category and allows (does not require) a team selection.
 - Timer counts down accurately, transitions focus -> break -> setup automatically, and fires a local notification at each transition.

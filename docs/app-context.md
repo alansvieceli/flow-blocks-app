@@ -16,7 +16,7 @@ The user works for multiple teams (e.g. "Equipe X", "Equipe Y") and wants to (1)
 
 - Spec 003 - Pomodoro Time Tracking: configurable focus/break timer, categories, team/project management, session history.
 - Spec 004 - Reminders: scheduled local notifications, optionally linked to a category/team.
-- Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak.
+- Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak, daily/weekly context-switch count, weekly team-balance alert.
 
 Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync, monetization, brain dump.
 
@@ -28,7 +28,7 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 
 ## Core Data Concepts
 
-- `teams`: user-managed list of teams/projects (id, name).
+- `teams`: user-managed list of teams/projects (id, name, optional max weekly % target).
 - `sessions`: recorded Pomodoro focus/break blocks (category, team, planned/actual duration, timestamps, completed flag).
 - `settings`: default focus/break durations (25/5).
 - `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
