@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -29,4 +29,4 @@ Build the History screen, replacing the placeholder from task 003-01.
 
 ## Result
 
-<!-- Fill after completion -->
+`app/(tabs)/history.tsx` implementado com FlatList ordenada mais recente primeiro, mostrando data, horário, duração, categoria, equipe ("Equipe removida" quando id não resolve) e nota. `src/lib/formatDuration.ts` criado com testes.

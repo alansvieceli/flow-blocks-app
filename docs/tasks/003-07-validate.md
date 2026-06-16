@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -36,4 +36,4 @@ npm run check
 
 ## Result
 
-<!-- Fill after completion -->
+`npm run check` passou: 0 erros de lint, format OK, typecheck OK, 17 testes passando, cobertura 100% statements em `src/lib/` e `src/storage/`.

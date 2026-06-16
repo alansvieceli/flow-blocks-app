@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -52,4 +52,4 @@ interface Session {
 
 ## Result
 
-<!-- Fill after completion -->
+Tipos em `src/types/index.ts`. Constantes de categorias em `src/lib/categories.ts`. Helpers AsyncStorage em `src/storage/`. Mock manual em `__mocks__/`. Todos os testes passam com 100% de cobertura no storage.

@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -34,4 +34,4 @@ Build the Tracker screen, replacing the placeholder from task 003-01.
 
 ## Result
 
-<!-- Fill after completion -->
+`app/(tabs)/tracker.tsx` implementado com seleção de categoria e equipe, timer de elapsed ao vivo, Start/Stop, modal de nota, quick restart. Timer retoma de `startedAt` ao foreground.

@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -31,4 +31,4 @@ Build the Teams screen, replacing the placeholder from task 003-01.
 
 ## Result
 
-<!-- Fill after completion -->
+`app/(tabs)/teams.tsx` implementado com FlatList, modal de edição, confirmação de deleção, validação de nome e `maxWeeklyPercent`. Persiste via `saveTeams`.

@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -25,4 +25,4 @@ Add tab navigation with three tabs: **Tracker**, **History**, and **Teams**.
 
 ## Result
 
-<!-- Fill after completion -->
+Expo Router v4 instalado. Estrutura `app/(tabs)/` com três tabs: Tracker, History, Teams. Entry point alterado para `expo-router/entry`. Typecheck e lint passam.

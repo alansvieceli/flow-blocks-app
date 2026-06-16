@@ -6,7 +6,7 @@
 
 ## Status
 
-Pending
+Done
 
 ## Description
 
@@ -33,4 +33,4 @@ The indicator must:
 
 ## Result
 
-<!-- Fill after completion -->
+Banner azul persistente no topo da navegação mostrando categoria e elapsed. Visível em todos os tabs. Tapping navega para o Tracker. Hook `src/lib/useActiveSession.ts` centraliza o polling do AsyncStorage.
