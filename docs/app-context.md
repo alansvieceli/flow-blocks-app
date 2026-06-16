@@ -10,13 +10,14 @@ Flow Blocks is a React Native Expo application built with TypeScript. It helps a
 
 ## Target Problem
 
-The user works for multiple teams (e.g. "Equipe X", "Equipe Y") and wants to (1) run a configurable Pomodoro timer per work block, declaring a category and team/project before starting, (2) set scheduled reminders with local notifications, and (3) see where their focus time goes via weekly metrics, an hourly heatmap, and a focus streak.
+The user works for multiple teams (e.g. "Equipe X", "Equipe Y") and wants to (1) run a configurable Pomodoro timer per work block, declaring a category and team/project before starting, (2) set scheduled reminders with local notifications, (3) see where their focus time goes via weekly metrics, an hourly heatmap, and a focus streak, and (4) plan and track personal/leisure time (reading, gaming, rest, etc.) with a recurring weekly template and daily check-in.
 
 ## Roadmap (specs)
 
 - Spec 003 - Pomodoro Time Tracking: configurable focus/break timer, categories, team/project management, session history.
 - Spec 004 - Reminders: scheduled local notifications, optionally linked to a category/team.
 - Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak, daily/weekly context-switch count, weekly team-balance alert.
+- Spec 006 - Personal Time Planner: user-defined personal activities, recurring weekly templates per weekday, daily plan with check/no-check, personal time chart.
 
 Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync, monetization, brain dump.
 
@@ -32,6 +33,9 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 - `sessions`: recorded Pomodoro focus/break blocks (category, team, planned/actual duration, timestamps, completed flag).
 - `settings`: default focus/break durations (25/5).
 - `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
+- `personalActivities`: user-defined leisure activities (id, name).
+- `personalWeeklyTemplate`: recurring plan per weekday (activity + planned duration).
+- `personalDailyPlan`: per-date plan entries generated from the template, with done/not-done status.
 
 ## Primary Navigation
 
