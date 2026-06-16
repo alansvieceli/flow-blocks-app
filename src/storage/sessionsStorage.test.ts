@@ -2,8 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSessions, saveSessions } from './sessionsStorage';
 import { Session } from '../types';
 
-jest.mock('@react-native-async-storage/async-storage');
-
 const session: Session = {
   id: 's1',
   categoryId: 'foco_profundo',

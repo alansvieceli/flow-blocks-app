@@ -6,8 +6,6 @@ import {
 } from './activeSessionStorage';
 import { ActiveSession } from '../types';
 
-jest.mock('@react-native-async-storage/async-storage');
-
 const active: ActiveSession = {
   id: 'a1',
   categoryId: 'reunioes',

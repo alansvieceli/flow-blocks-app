@@ -2,8 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTeams, saveTeams } from './teamsStorage';
 import { Team } from '../types';
 
-jest.mock('@react-native-async-storage/async-storage');
-
 const team: Team = { id: '1', name: 'Alpha', maxWeeklyPercent: 40 };
 
 beforeEach(() => AsyncStorage.clear());
