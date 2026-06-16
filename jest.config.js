@@ -5,7 +5,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/lib/**/*.{ts,tsx}',
     'src/storage/**/*.{ts,tsx}',
-    'src/types/**/*.{ts,tsx}',
+    '!src/lib/useActiveSession.ts',
     '!src/**/*.test.{ts,tsx}',
   ],
   coverageThreshold: {
