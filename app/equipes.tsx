@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -5,20 +6,23 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getTeams, saveTeams } from '../../src/storage/teamsStorage';
-import { Team } from '../../src/types';
+import { ScreenHeader } from '../src/components/ScreenHeader';
+import { getTeams, saveTeams } from '../src/storage/teamsStorage';
+import { colors } from '../src/theme/colors';
+import { typography } from '../src/theme/typography';
+import { Team } from '../src/types';
 
-export default function TeamsScreen() {
+export default function EquipesScreen() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [newName, setNewName] = useState('');
   const [newPercent, setNewPercent] = useState('');
-
   const [editTeam, setEditTeam] = useState<Team | null>(null);
   const [editName, setEditName] = useState('');
   const [editPercent, setEditPercent] = useState('');
@@ -104,19 +108,25 @@ export default function TeamsScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>Equipes</Text>
+      <ScreenHeader title="Equipes" backTo="/(tabs)/mais" />
 
       <FlatList
         data={teams}
         keyExtractor={(item) => item.id}
         style={styles.list}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <LinearGradient
+            colors={[colors.cardFrom, colors.cardTo]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.item}
+          >
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemPercent}>
-                {item.maxWeeklyPercent !== null ? `${item.maxWeeklyPercent}%` : '—'}
-              </Text>
+              {item.maxWeeklyPercent !== null && (
+                <Text style={styles.itemPercent}>Meta: {item.maxWeeklyPercent}%</Text>
+              )}
             </View>
             <View style={styles.itemActions}>
               <TouchableOpacity style={styles.btnEdit} onPress={() => openEdit(item)}>
@@ -129,7 +139,7 @@ export default function TeamsScreen() {
                 <Text style={styles.btnDeleteText}>Remover</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </LinearGradient>
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>Nenhuma equipe cadastrada.</Text>
@@ -137,38 +147,49 @@ export default function TeamsScreen() {
       />
 
       <View style={styles.addSection}>
-        <Text style={styles.sectionLabel}>Nova equipe</Text>
+        <Text style={styles.addSectionLabel}>NOVA EQUIPE</Text>
         <TextInput
           style={styles.input}
           placeholder="Nome"
+          placeholderTextColor={colors.textSecondary}
           value={newName}
           onChangeText={setNewName}
         />
         <TextInput
           style={styles.input}
           placeholder="% máx. semanal (opcional)"
+          placeholderTextColor={colors.textSecondary}
           value={newPercent}
           onChangeText={setNewPercent}
           keyboardType="numeric"
         />
-        <TouchableOpacity style={styles.btnAdd} onPress={handleAdd}>
-          <Text style={styles.btnAddText}>Adicionar</Text>
+        <TouchableOpacity onPress={handleAdd} activeOpacity={0.8}>
+          <LinearGradient
+            colors={[colors.accentFrom, colors.accentTo]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.btnAdd}
+          >
+            <Text style={styles.btnAddText}>Adicionar equipe</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
 
       <Modal visible={editTeam !== null} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <ScrollView style={styles.modalBox} keyboardShouldPersistTaps="handled">
             <Text style={styles.modalTitle}>Editar equipe</Text>
             <TextInput
               style={styles.input}
               placeholder="Nome"
+              placeholderTextColor={colors.textSecondary}
               value={editName}
               onChangeText={setEditName}
             />
             <TextInput
               style={styles.input}
               placeholder="% máx. semanal (opcional)"
+              placeholderTextColor={colors.textSecondary}
               value={editPercent}
               onChangeText={setEditPercent}
               keyboardType="numeric"
@@ -180,11 +201,22 @@ export default function TeamsScreen() {
               >
                 <Text style={styles.btnCancelText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.btnAdd} onPress={handleSaveEdit}>
-                <Text style={styles.btnAddText}>Salvar</Text>
+              <TouchableOpacity
+                onPress={handleSaveEdit}
+                style={styles.btnSaveWrapper}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[colors.accentFrom, colors.accentTo]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.btnSave}
+                >
+                  <Text style={styles.btnSaveText}>Salvar</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </KeyboardAvoidingView>
@@ -192,78 +224,104 @@ export default function TeamsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: 'bold', padding: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
   list: { flex: 1 },
+  listContent: { padding: 16, gap: 10 },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
   },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 16 },
-  itemPercent: { fontSize: 13, color: '#666', marginTop: 2 },
+  itemInfo: { flex: 1, gap: 2 },
+  itemName: { fontSize: 15, color: colors.textPrimary, fontWeight: '600' },
+  itemPercent: { fontSize: 12, color: colors.textSecondary },
   itemActions: { flexDirection: 'row', gap: 8 },
   btnEdit: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#e8f0fe',
-    borderRadius: 6,
+    backgroundColor: '#1a1048',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.accentFrom,
   },
-  btnEditText: { color: '#1a73e8', fontSize: 13 },
+  btnEditText: { color: colors.accentFrom, fontSize: 13 },
   btnDelete: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#fce8e6',
-    borderRadius: 6,
+    backgroundColor: '#2a0a0a',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.destructiveFrom,
   },
-  btnDeleteText: { color: '#d93025', fontSize: 13 },
-  empty: { textAlign: 'center', color: '#999', marginTop: 32 },
+  btnDeleteText: { color: colors.destructiveFrom, fontSize: 13 },
+  empty: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    marginTop: 32,
+    ...typography.body,
+  },
   addSection: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.cardBorder,
+    gap: 8,
   },
-  sectionLabel: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
+  addSectionLabel: {
+    ...typography.sectionLabel,
+    color: colors.textSecondary,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    borderColor: colors.cardBorder,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 8,
+    paddingVertical: 10,
     fontSize: 15,
+    color: colors.textPrimary,
+    backgroundColor: '#0a0a14',
   },
   btnAdd: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  btnAddText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  btnAddText: { color: colors.textPrimary, fontWeight: '700', fontSize: 15 },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalBox: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: colors.cardFrom,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopWidth: 1,
+    borderColor: colors.cardBorder,
     padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
+  modalTitle: {
+    ...typography.screenTitle,
+    color: colors.textPrimary,
+    marginBottom: 12,
+  },
   modalActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
   btnCancel: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderColor: colors.cardBorder,
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  btnCancelText: { color: '#333', fontSize: 15 },
+  btnCancelText: { color: colors.textSecondary, fontSize: 15 },
+  btnSaveWrapper: { flex: 2 },
+  btnSave: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  btnSaveText: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
 });

@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { formatDuration } from '../../src/lib/formatDuration';
+import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../src/theme/colors';
 import { useActiveSession } from '../../src/lib/useActiveSession';
-import { getCategoryLabel } from '../../src/lib/categories';
+import { formatDuration } from '../../src/lib/formatDuration';
 
 function ActiveSessionBanner() {
   const { activeSession, elapsed } = useActiveSession();
@@ -12,17 +12,13 @@ function ActiveSessionBanner() {
   if (!activeSession) return null;
 
   return (
-    <TouchableOpacity
-      style={styles.banner}
-      onPress={() => router.push('/(tabs)/tracker')}
-    >
+    <TouchableOpacity style={styles.banner} onPress={() => router.push('/(tabs)/')}>
       <View style={styles.bannerLeft}>
-        <Text style={styles.bannerLabel}>
-          {getCategoryLabel(activeSession.categoryId)}
-        </Text>
-        <Text style={styles.bannerTimer}>{formatDuration(elapsed)}</Text>
+        <View style={styles.recordingDot} />
+        <Text style={styles.bannerRecording}>Gravando</Text>
       </View>
-      <Text style={styles.bannerHint}>▶ Tracker</Text>
+      <Text style={styles.bannerTimer}>{formatDuration(elapsed)}</Text>
+      <Text style={styles.bannerHint}>▶ Início</Text>
     </TouchableOpacity>
   );
 }
@@ -31,31 +27,51 @@ export default function TabsLayout() {
   return (
     <>
       <ActiveSessionBanner />
-      <Tabs screenOptions={{ headerShown: false }}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: colors.tabBarBackground,
+            borderTopColor: colors.tabBarBorder,
+            borderTopWidth: 1,
+          },
+          tabBarActiveTintColor: colors.tabActive,
+          tabBarInactiveTintColor: colors.tabInactive,
+        }}
+      >
         <Tabs.Screen
-          name="tracker"
+          name="index"
           options={{
-            title: 'Tracker',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="timer-outline" size={size} color={color} />
+            title: 'Início',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="home-outline" size={22} color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="history"
+          name="painel"
           options={{
-            title: 'Histórico',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="list-outline" size={size} color={color} />
+            title: 'Painel',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="grid-outline" size={22} color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="teams"
+          name="lembretes"
           options={{
-            title: 'Equipes',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
+            title: 'Lembretes',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="notifications-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="mais"
+          options={{
+            title: 'Mais',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="ellipsis-horizontal-outline" size={22} color={color} />
             ),
           }}
         />
@@ -66,15 +82,38 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#1a1228',
+    borderBottomColor: colors.cardBorder,
+    borderBottomWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  bannerLeft: { gap: 2 },
-  bannerLabel: { color: '#fff', fontSize: 12, opacity: 0.85 },
-  bannerTimer: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  bannerHint: { color: '#fff', fontSize: 13, opacity: 0.85 },
+  bannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  recordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.alert,
+  },
+  bannerRecording: {
+    color: colors.alert,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  bannerTimer: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  bannerHint: {
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
 });

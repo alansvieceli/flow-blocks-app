@@ -1,0 +1,467 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { ScreenHeader } from '../src/components/ScreenHeader';
+import {
+  getPersonalActivities,
+  getPersonalDailyPlans,
+  getPersonalWeeklyTemplate,
+  savePersonalDailyPlans,
+} from '../src/storage/personalStorage';
+import { colors } from '../src/theme/colors';
+import { typography } from '../src/theme/typography';
+import {
+  PersonalActivity,
+  PersonalDailyPlan,
+  PersonalDailyPlanEntry,
+  PersonalWeeklyTemplateDay,
+} from '../src/types';
+
+type DoneState = 'pending' | 'done' | 'not-done';
+
+function cycleState(current: DoneState): DoneState {
+  if (current === 'pending') return 'done';
+  if (current === 'done') return 'not-done';
+  return 'pending';
+}
+
+function getStateFromEntry(entry: PersonalDailyPlanEntry): DoneState {
+  return entry.done ? 'done' : 'pending';
+}
+
+function buildFromTemplate(
+  template: PersonalWeeklyTemplateDay[],
+  jsDay: number,
+  date: string,
+): PersonalDailyPlan {
+  // jsDay: 0=Sun, 1=Mon, ... but template uses 1=Mon, 0=Sun (same as JS)
+  const dayOfWeek = jsDay as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const dayTemplate = template.find((d) => d.dayOfWeek === dayOfWeek);
+  const entries: PersonalDailyPlanEntry[] = (dayTemplate?.entries ?? []).map((e) => ({
+    id: `${date}-${e.activityId}-${Date.now()}-${Math.random()}`,
+    activityId: e.activityId,
+    plannedMinutes: e.plannedMinutes,
+    done: false,
+  }));
+  return { date, entries };
+}
+
+export default function PlanoDiaScreen() {
+  const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
+  const today = new Date();
+  const dateStr = dateParam ?? today.toISOString().slice(0, 10);
+
+  const [plan, setPlan] = useState<PersonalDailyPlan>({ date: dateStr, entries: [] });
+  const [activities, setActivities] = useState<PersonalActivity[]>([]);
+  const [preFilled, setPreFilled] = useState(false);
+  const [entryStates, setEntryStates] = useState<Map<string, DoneState>>(new Map());
+
+  // Add entry modal
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [durationStr, setDurationStr] = useState('');
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    async function load() {
+      const [plans, template, acts] = await Promise.all([
+        getPersonalDailyPlans(),
+        getPersonalWeeklyTemplate(),
+        getPersonalActivities(),
+      ]);
+      setActivities(acts);
+
+      const existing = plans.find((p) => p.date === dateStr);
+      if (existing) {
+        setPlan(existing);
+        const stateMap = new Map<string, DoneState>();
+        for (const e of existing.entries) {
+          stateMap.set(e.id, getStateFromEntry(e));
+        }
+        setEntryStates(stateMap);
+      } else {
+        const jsDay = new Date(dateStr + 'T12:00:00Z').getUTCDay();
+        const newPlan = buildFromTemplate(template, jsDay, dateStr);
+        const allPlans = [...plans, newPlan];
+        await savePersonalDailyPlans(allPlans);
+        setPlan(newPlan);
+        if (newPlan.entries.length > 0) setPreFilled(true);
+        const stateMap = new Map<string, DoneState>();
+        for (const e of newPlan.entries) stateMap.set(e.id, 'pending');
+        setEntryStates(stateMap);
+      }
+    }
+    void load();
+  }, [dateStr]);
+
+  async function savePlan(updatedPlan: PersonalDailyPlan) {
+    const plans = await getPersonalDailyPlans();
+    const updated = plans.map((p) => (p.date === dateStr ? updatedPlan : p));
+    if (!updated.find((p) => p.date === dateStr)) updated.push(updatedPlan);
+    await savePersonalDailyPlans(updated);
+    setPlan(updatedPlan);
+  }
+
+  async function toggleEntry(id: string) {
+    const current = entryStates.get(id) ?? 'pending';
+    const next = cycleState(current);
+    const newStates = new Map(entryStates);
+    newStates.set(id, next);
+    setEntryStates(newStates);
+
+    const updatedEntries = plan.entries.map((e) =>
+      e.id === id ? { ...e, done: next === 'done' } : e,
+    );
+    await savePlan({ ...plan, entries: updatedEntries });
+  }
+
+  async function removeEntry(id: string) {
+    const updatedEntries = plan.entries.filter((e) => e.id !== id);
+    const newStates = new Map(entryStates);
+    newStates.delete(id);
+    setEntryStates(newStates);
+    await savePlan({ ...plan, entries: updatedEntries });
+  }
+
+  function openAddModal() {
+    setSelectedActivityId(null);
+    setDurationStr('');
+    setFormError('');
+    setAddModalVisible(true);
+  }
+
+  async function handleAddEntry() {
+    if (!selectedActivityId) {
+      setFormError('Selecione uma atividade.');
+      return;
+    }
+    const mins = parseInt(durationStr, 10);
+    if (isNaN(mins) || mins <= 0) {
+      setFormError('Duração inválida.');
+      return;
+    }
+    const newEntry: PersonalDailyPlanEntry = {
+      id: `${dateStr}-${selectedActivityId}-${Date.now()}`,
+      activityId: selectedActivityId,
+      plannedMinutes: mins,
+      done: false,
+    };
+    const updatedPlan = { ...plan, entries: [...plan.entries, newEntry] };
+    const newStates = new Map(entryStates);
+    newStates.set(newEntry.id, 'pending');
+    setEntryStates(newStates);
+    await savePlan(updatedPlan);
+    setAddModalVisible(false);
+  }
+
+  function resolveActivity(activityId: string): string {
+    return activities.find((a) => a.id === activityId)?.name ?? 'Atividade removida';
+  }
+
+  function isRemoved(activityId: string): boolean {
+    return !activities.find((a) => a.id === activityId);
+  }
+
+  const doneCount = plan.entries.filter((e) => entryStates.get(e.id) === 'done').length;
+  const notDoneCount = plan.entries.filter(
+    (e) => entryStates.get(e.id) === 'not-done',
+  ).length;
+  const pendingCount = plan.entries.length - doneCount - notDoneCount;
+
+  const displayDate = (() => {
+    const isToday = dateStr === today.toISOString().slice(0, 10);
+    if (isToday) return '🌙 Esta noite';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  })();
+
+  return (
+    <View style={styles.container}>
+      <ScreenHeader
+        title={displayDate}
+        subtitle={preFilled ? 'Pré-preenchido do template' : undefined}
+        backTo="/(tabs)/"
+        rightAction={
+          <TouchableOpacity onPress={openAddModal} style={styles.addBtn}>
+            <Text style={styles.addBtnText}>+ Adicionar</Text>
+          </TouchableOpacity>
+        }
+      />
+
+      <ScrollView contentContainerStyle={styles.listContent}>
+        {plan.entries.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhuma atividade planejada para hoje.</Text>
+        ) : (
+          plan.entries.map((entry) => {
+            const state = entryStates.get(entry.id) ?? 'pending';
+            const name = resolveActivity(entry.activityId);
+            const removed = isRemoved(entry.activityId);
+            return (
+              <LinearGradient
+                key={entry.id}
+                colors={
+                  state === 'done'
+                    ? (['#0d2b1a', '#0a1f12'] as const)
+                    : ([colors.cardFrom, colors.cardTo] as const)
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.entryRow, styles.entryRowSpaced]}
+              >
+                <TouchableOpacity
+                  onPress={() => toggleEntry(entry.id)}
+                  style={styles.checkbox}
+                >
+                  {state === 'done' ? (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={22}
+                      color={colors.success}
+                    />
+                  ) : state === 'not-done' ? (
+                    <Ionicons
+                      name="close-circle-outline"
+                      size={22}
+                      color={colors.textSecondary}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="ellipse-outline"
+                      size={22}
+                      color={colors.textSecondary}
+                    />
+                  )}
+                </TouchableOpacity>
+                <View
+                  style={[
+                    styles.entryContent,
+                    state === 'not-done' && styles.entryContentMuted,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.entryName,
+                      removed && styles.removedText,
+                      state === 'not-done' && styles.strikethrough,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {name}
+                  </Text>
+                  <Text style={styles.entryDuration}>{entry.plannedMinutes} min</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeEntry(entry.id)}
+                  style={styles.iconBtn}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={16}
+                    color={colors.destructiveFrom}
+                  />
+                </TouchableOpacity>
+              </LinearGradient>
+            );
+          })
+        )}
+      </ScrollView>
+
+      {/* Summary footer */}
+      {plan.entries.length > 0 && (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            {doneCount} feito · {notDoneCount} não rolou · {pendingCount} pendentes
+          </Text>
+        </View>
+      )}
+
+      {/* Add entry modal */}
+      <Modal visible={addModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>+ Adicionar atividade</Text>
+
+            <Text style={styles.formLabel}>Atividade</Text>
+            <ScrollView style={styles.activityPicker} nestedScrollEnabled>
+              {activities.length === 0 ? (
+                <Text style={styles.emptyText}>Nenhuma atividade disponível.</Text>
+              ) : (
+                activities.map((a) => (
+                  <TouchableOpacity
+                    key={a.id}
+                    onPress={() => {
+                      setSelectedActivityId(a.id);
+                      setFormError('');
+                    }}
+                    style={[
+                      styles.activityOption,
+                      selectedActivityId === a.id && styles.activityOptionSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.activityOptionText,
+                        selectedActivityId === a.id &&
+                          styles.activityOptionTextSelected,
+                      ]}
+                    >
+                      {a.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+
+            <Text style={styles.formLabel}>Duração (minutos)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="ex: 30"
+              placeholderTextColor={colors.textSecondary}
+              value={durationStr}
+              onChangeText={(t) => {
+                setDurationStr(t);
+                setFormError('');
+              }}
+              keyboardType="number-pad"
+            />
+
+            {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
+
+            <View style={styles.modalBtns}>
+              <TouchableOpacity
+                onPress={() => setAddModalVisible(false)}
+                style={styles.cancelBtn}
+              >
+                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleAddEntry}
+                activeOpacity={0.8}
+                style={styles.saveWrapper}
+              >
+                <LinearGradient
+                  colors={[colors.accentFrom, colors.accentTo]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.saveBtn}
+                >
+                  <Text style={styles.saveBtnText}>Adicionar</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  addBtn: { padding: 4 },
+  addBtnText: { color: colors.accentFrom, fontSize: 14, fontWeight: '700' },
+  listContent: { padding: 16, paddingTop: 4, paddingBottom: 100 },
+  emptyText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    padding: 16,
+  },
+  entryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    padding: 12,
+    gap: 10,
+  },
+  entryRowSpaced: { marginBottom: 8 },
+  entryContent: { flex: 1 },
+  entryContentMuted: { opacity: 0.4 },
+  checkbox: { padding: 2 },
+  entryName: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
+  removedText: { color: colors.textDisabled },
+  strikethrough: { textDecorationLine: 'line-through' },
+  entryDuration: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  iconBtn: { padding: 4 },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.cardBorder,
+    padding: 16,
+    alignItems: 'center',
+  },
+  footerText: { ...typography.sectionLabel, color: colors.textSecondary },
+  formLabel: { fontSize: 12, color: colors.textSecondary },
+  activityPicker: {
+    maxHeight: 120,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+  activityOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.cardBorder,
+  },
+  activityOptionSelected: { backgroundColor: colors.accentFrom + '33' },
+  activityOptionText: { fontSize: 13, color: colors.textSecondary },
+  activityOptionTextSelected: { color: colors.textPrimary, fontWeight: '700' },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.textPrimary,
+    backgroundColor: '#0a0a14',
+  },
+  errorText: { fontSize: 12, color: colors.destructiveFrom },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    width: '100%',
+    backgroundColor: '#12122a',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    padding: 20,
+    gap: 10,
+  },
+  modalTitle: { ...typography.screenTitle, color: colors.textPrimary, fontSize: 16 },
+  modalBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+  cancelBtnText: { color: colors.textSecondary, fontWeight: '600' },
+  saveWrapper: { flex: 1 },
+  saveBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtnText: { color: colors.textPrimary, fontWeight: '800', fontSize: 14 },
+});

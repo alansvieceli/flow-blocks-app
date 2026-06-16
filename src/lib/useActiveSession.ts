@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getActiveSession } from '../storage/activeSessionStorage';
 import { ActiveSession } from '../types';
 
@@ -11,21 +11,24 @@ export function useActiveSession() {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  function startTick(startedAt: string) {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setElapsed(elapsedSeconds(startedAt));
-    }, 1000);
-  }
-
-  function stopTick() {
+  const stopTick = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }
+  }, []);
 
-  async function refresh() {
+  const startTick = useCallback(
+    (startedAt: string) => {
+      stopTick();
+      timerRef.current = setInterval(() => {
+        setElapsed(elapsedSeconds(startedAt));
+      }, 1000);
+    },
+    [stopTick],
+  );
+
+  const refresh = useCallback(async () => {
     const active = await getActiveSession();
     setActiveSession(active);
     if (active) {
@@ -35,12 +38,12 @@ export function useActiveSession() {
       stopTick();
       setElapsed(0);
     }
-  }
+  }, [startTick, stopTick]);
 
   useEffect(() => {
     void refresh();
     return () => stopTick();
-  }, []);
+  }, [refresh, stopTick]);
 
   return { activeSession, elapsed, refresh };
 }
