@@ -45,7 +45,7 @@ Flow Blocks helps a developer who works across multiple teams understand where t
 - User can configure focus/break duration on the setup screen; values default to the persisted `settings` (initially 25/5) and changes to `settings` persist for future sessions.
 - Starting a block requires a category and allows (does not require) a team selection.
 - Timer counts down accurately, transitions focus -> break -> setup automatically, and fires a local notification at each transition.
-- Stopping a block early still records a session with `completed: false` and the actual elapsed duration.
+- Stopping a block early still records a session with `completed: false` and the actual elapsed duration. This is the intended flow for handling mid-block interruptions: stop the current block (preserving real elapsed time), then start a new block with the correct category (e.g. switching from "deep work" to "meetings" when a meeting starts unexpectedly).
 - History screen lists all recorded sessions with category, team name (or "Unknown team"), type, planned and actual duration, and start date/time.
 - `npm run check` passes.
 
