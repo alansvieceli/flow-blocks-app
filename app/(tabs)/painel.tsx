@@ -4,6 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORIES } from '../../src/lib/categories';
+import { toLocalDateString } from '../../src/lib/localDate';
 import {
   CategoryMetrics,
   TeamBalanceAlert,
@@ -306,8 +307,10 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
   const contextSwitches = getContextSwitches(sessions, today);
   const alerts = getTeamBalanceAlerts(sessions, teams, today);
   const dailyMetrics = getDailyMetrics(sessions, teams, today);
-  const todayStr = today.toISOString().slice(0, 10);
-  const hasTodaySession = sessions.some((s) => s.endedAt.slice(0, 10) === todayStr);
+  const todayStr = toLocalDateString(today);
+  const hasTodaySession = sessions.some(
+    (s) => toLocalDateString(new Date(s.endedAt)) === todayStr,
+  );
 
   return (
     <>

@@ -3,6 +3,7 @@ import {
   getActiveSession,
   setActiveSession,
   clearActiveSession,
+  subscribeActiveSession,
 } from './activeSessionStorage';
 import { ActiveSession } from '../types';
 
@@ -29,5 +30,19 @@ describe('activeSessionStorage', () => {
     await setActiveSession(active);
     await clearActiveSession();
     expect(await getActiveSession()).toBeNull();
+  });
+
+  it('notifies subscribers when active session changes', async () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeActiveSession(listener);
+
+    await setActiveSession(active);
+    await clearActiveSession();
+    unsubscribe();
+    await setActiveSession(active);
+
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenNthCalledWith(1, active);
+    expect(listener).toHaveBeenNthCalledWith(2, null);
   });
 });

@@ -2,7 +2,19 @@
 
 Flow Blocks is a React Native Expo application built with TypeScript.
 
-This project is currently a blank starting point. App behavior and features will be documented here as specs are implemented, following the workflow in `AGENTS.md`.
+It helps a developer track work time across teams, schedule local reminders,
+visualize time distribution, and plan personal/leisure activities. Data is stored
+locally on the device with no backend, sync, authentication, or paid services.
+
+## Current App Behavior
+
+- Four main tabs: Início, Painel, Lembretes, and Mais.
+- Início: start/stop work sessions by category and team, see today's work summary, active session state, tonight's personal plan, and personal activity chart.
+- Painel: weekly category/team metrics, hourly heatmap, streak, context-switch counts, and team-balance alerts.
+- Lembretes: create, edit, delete, and schedule local reminders.
+- Mais: access Equipes, Histórico, Atividades, Template semanal, and Configurações.
+- Active work sessions show a running banner above the tab bar from every tab.
+- Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 
 ## Requirements
 
@@ -29,10 +41,43 @@ Useful shortcuts in the Expo terminal:
 - Press `a` to open on Android emulator.
 - Press `r` to reload the app.
 
-## TypeScript Check
+For a native Android development build:
 
 ```bash
-npx tsc --noEmit
+npx expo run:android
+```
+
+## Validation
+
+```bash
+npm run lint
+npm run format:check
+npm run typecheck
+npm test
+npm run test:coverage
+```
+
+The combined gate is:
+
+```bash
+npm run check
+```
+
+## Local Data
+
+The app stores data in AsyncStorage on the device:
+
+- `teams`
+- `sessions`
+- `active_session`
+- `reminders`
+- `settings`
+- `personalActivities`
+- `personalWeeklyTemplate`
+- `personalDailyPlan`
+
+Calendar-based summaries use the device's local date and time.
+
 ```
 
 ## Project Workflow
@@ -47,4 +92,5 @@ The project follows a spec-first workflow documented in `AGENTS.md` and `docs/st
 
 ## Roadmap
 
-Planned or future work will be tracked through specs and tasks as the project grows.
+Specs, plans, and tasks in `docs/` remain the source for planned and completed work.
+```

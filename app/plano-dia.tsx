@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
+import { toLocalDateString } from '../src/lib/localDate';
 import {
   getPersonalActivities,
   getPersonalDailyPlans,
@@ -24,10 +25,11 @@ import {
   PersonalActivity,
   PersonalDailyPlan,
   PersonalDailyPlanEntry,
+  PersonalDailyPlanEntryStatus,
   PersonalWeeklyTemplateDay,
 } from '../src/types';
 
-type DoneState = 'pending' | 'done' | 'not-done';
+type DoneState = PersonalDailyPlanEntryStatus;
 
 function cycleState(current: DoneState): DoneState {
   if (current === 'pending') return 'done';
@@ -36,6 +38,7 @@ function cycleState(current: DoneState): DoneState {
 }
 
 function getStateFromEntry(entry: PersonalDailyPlanEntry): DoneState {
+  if (entry.status) return entry.status;
   return entry.done ? 'done' : 'pending';
 }
 
@@ -52,6 +55,7 @@ function buildFromTemplate(
     activityId: e.activityId,
     plannedMinutes: e.plannedMinutes,
     done: false,
+    status: 'pending',
   }));
   return { date, entries };
 }
@@ -59,7 +63,7 @@ function buildFromTemplate(
 export default function PlanoDiaScreen() {
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const today = new Date();
-  const dateStr = dateParam ?? today.toISOString().slice(0, 10);
+  const dateStr = dateParam ?? toLocalDateString(today);
 
   const [plan, setPlan] = useState<PersonalDailyPlan>({ date: dateStr, entries: [] });
   const [activities, setActivities] = useState<PersonalActivity[]>([]);
@@ -90,7 +94,8 @@ export default function PlanoDiaScreen() {
         }
         setEntryStates(stateMap);
       } else {
-        const jsDay = new Date(dateStr + 'T12:00:00Z').getUTCDay();
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const jsDay = new Date(year, month - 1, day, 12).getDay();
         const newPlan = buildFromTemplate(template, jsDay, dateStr);
         const allPlans = [...plans, newPlan];
         await savePersonalDailyPlans(allPlans);
@@ -120,7 +125,7 @@ export default function PlanoDiaScreen() {
     setEntryStates(newStates);
 
     const updatedEntries = plan.entries.map((e) =>
-      e.id === id ? { ...e, done: next === 'done' } : e,
+      e.id === id ? { ...e, done: next === 'done', status: next } : e,
     );
     await savePlan({ ...plan, entries: updatedEntries });
   }
@@ -155,6 +160,7 @@ export default function PlanoDiaScreen() {
       activityId: selectedActivityId,
       plannedMinutes: mins,
       done: false,
+      status: 'pending',
     };
     const updatedPlan = { ...plan, entries: [...plan.entries, newEntry] };
     const newStates = new Map(entryStates);
@@ -179,7 +185,7 @@ export default function PlanoDiaScreen() {
   const pendingCount = plan.entries.length - doneCount - notDoneCount;
 
   const displayDate = (() => {
-    const isToday = dateStr === today.toISOString().slice(0, 10);
+    const isToday = dateStr === toLocalDateString(today);
     if (isToday) return '🌙 Esta noite';
     const [y, m, d] = dateStr.split('-');
     return `${d}/${m}/${y}`;

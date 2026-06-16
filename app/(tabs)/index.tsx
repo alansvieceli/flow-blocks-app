@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { CATEGORIES } from '../../src/lib/categories';
 import { formatDuration } from '../../src/lib/formatDuration';
+import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
 import { getPersonalDoneMinutesByActivity } from '../../src/lib/personalMetrics';
 import {
@@ -114,7 +115,7 @@ export default function HomeScreen() {
     useCallback(() => {
       async function loadPersonal() {
         const today = new Date();
-        const todayStr = today.toISOString().slice(0, 10);
+        const todayStr = toLocalDateString(today);
         const [plans, template, acts, t, s] = await Promise.all([
           getPersonalDailyPlans(),
           getPersonalWeeklyTemplate(),
@@ -131,13 +132,16 @@ export default function HomeScreen() {
         if (existing) {
           setTodayPlan(existing);
         } else {
-          const jsDay = today.getUTCDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+          const jsDay = today.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
           const dayTemplate = template.find((d) => d.dayOfWeek === jsDay);
-          const entries = (dayTemplate?.entries ?? []).map((e, i) => ({
+          const entries: PersonalDailyPlan['entries'] = (
+            dayTemplate?.entries ?? []
+          ).map((e, i) => ({
             id: `${todayStr}-${e.activityId}-${i}`,
             activityId: e.activityId,
             plannedMinutes: e.plannedMinutes,
             done: false,
+            status: 'pending',
           }));
           const newPlan: PersonalDailyPlan = { date: todayStr, entries };
           if (entries.length > 0) {
@@ -409,7 +413,7 @@ export default function HomeScreen() {
 
         {/* Esta noite card */}
         {(() => {
-          const todayStr = new Date().toISOString().slice(0, 10);
+          const todayStr = toLocalDateString(new Date());
           const entries = todayPlan?.entries ?? [];
           const doneCount = entries.filter((e) => e.done).length;
           const preview = entries.slice(0, 3);

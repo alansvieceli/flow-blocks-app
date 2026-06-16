@@ -129,26 +129,26 @@ describe('getHeatmapData', () => {
   });
 
   it('places session in correct day/hour cell (Mon=0)', () => {
-    // SESSION_MON_FOCUS starts 2026-06-15 09:00 UTC — Monday, hour 9
+    // SESSION_MON_FOCUS starts 2026-06-15 09:00 UTC — 06:00 in America/Sao_Paulo
     const m = getHeatmapData([SESSION_MON_FOCUS]);
-    expect(m[0][9]).toBe(60); // Mon, 09h
+    expect(m[0][6]).toBe(60); // Mon, 06h local
   });
 
   it('filters by teamId when provided', () => {
     const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], {
       teamId: 'teamB',
     });
-    expect(m[0][9]).toBe(0); // teamA excluded
-    // Tue is day 1 (Mon=0, Tue=1), hour 14
-    expect(m[1][14]).toBe(30);
+    expect(m[0][6]).toBe(0); // teamA excluded
+    // Tue is day 1 (Mon=0, Tue=1), hour 11 local
+    expect(m[1][11]).toBe(30);
   });
 
   it('filters by categoryId when provided', () => {
     const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], {
       categoryId: 'foco_profundo',
     });
-    expect(m[0][9]).toBe(60);
-    expect(m[1][14]).toBe(0); // reunioes excluded
+    expect(m[0][6]).toBe(60);
+    expect(m[1][11]).toBe(0); // reunioes excluded
   });
 });
 
@@ -333,6 +333,16 @@ describe('getDailyMetrics', () => {
     expect(result.topTeams).toHaveLength(2);
     expect(result.topTeams[0]).toEqual({ teamName: 'Team A', minutes: 60 });
     expect(result.topTeams[1]).toEqual({ teamName: 'Team B', minutes: 30 });
+  });
+
+  it('uses local date for late-night sessions', () => {
+    const lateNight = makeSession({
+      startedAt: '2026-06-17T01:00:00.000Z',
+      durationSeconds: 1800,
+      teamId: 'teamA',
+    });
+    const result = getDailyMetrics([lateNight], [TEAM_A], TODAY);
+    expect(result.totalMinutes).toBe(30);
   });
 
   it('limits topTeams to 2', () => {

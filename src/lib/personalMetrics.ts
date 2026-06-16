@@ -1,15 +1,12 @@
 import { PersonalActivity, PersonalDailyPlan } from '../types';
-
-function toDateString(iso: string): string {
-  return iso.slice(0, 10);
-}
+import { getLocalWeekStart, toLocalDateString } from './localDate';
 
 function getWeekStartStr(today: Date): string {
-  const d = new Date(today);
-  const day = d.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  return toDateString(d.toISOString());
+  return toLocalDateString(getLocalWeekStart(today));
+}
+
+function isEntryDone(entry: PersonalDailyPlan['entries'][number]): boolean {
+  return entry.status ? entry.status === 'done' : entry.done;
 }
 
 export function getPersonalDoneMinutesByActivity(
@@ -18,15 +15,15 @@ export function getPersonalDoneMinutesByActivity(
   options: { period: 'currentWeek' | 'last4Weeks'; today: Date },
 ): { activityName: string; minutes: number }[] {
   const today = options.today;
-  const todayStr = toDateString(today.toISOString());
+  const todayStr = toLocalDateString(today);
 
   let startStr: string;
   if (options.period === 'currentWeek') {
     startStr = getWeekStartStr(today);
   } else {
     const start = new Date(today);
-    start.setUTCDate(start.getUTCDate() - 27);
-    startStr = toDateString(start.toISOString());
+    start.setDate(start.getDate() - 27);
+    startStr = toLocalDateString(start);
   }
 
   const minutesById = new Map<string, number>();
@@ -34,7 +31,7 @@ export function getPersonalDoneMinutesByActivity(
   for (const plan of plans) {
     if (plan.date < startStr || plan.date > todayStr) continue;
     for (const entry of plan.entries) {
-      if (!entry.done) continue;
+      if (!isEntryDone(entry)) continue;
       minutesById.set(
         entry.activityId,
         (minutesById.get(entry.activityId) ?? 0) + entry.plannedMinutes,

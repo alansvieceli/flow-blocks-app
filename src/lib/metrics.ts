@@ -1,4 +1,5 @@
 import { Session, Team } from '../types';
+import { getLocalWeekEnd, getLocalWeekStart, toLocalDateString } from './localDate';
 
 export interface CategoryMetrics {
   deepWorkMinutes: number;
@@ -25,30 +26,9 @@ export interface DailyMetrics {
   topTeams: { teamName: string; minutes: number }[];
 }
 
-function toDateString(iso: string): string {
-  return iso.slice(0, 10); // YYYY-MM-DD (UTC)
-}
-
-function getWeekStart(today: Date): Date {
-  const d = new Date(today);
-  const day = d.getUTCDay(); // 0=Sun
-  const diff = day === 0 ? -6 : 1 - day; // Mon = start
-  d.setUTCDate(d.getUTCDate() + diff);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
-
-function getWeekEnd(today: Date): Date {
-  const start = getWeekStart(today);
-  const end = new Date(start);
-  end.setUTCDate(start.getUTCDate() + 6);
-  end.setUTCHours(23, 59, 59, 999);
-  return end;
-}
-
 function isCurrentWeek(session: Session, today: Date): boolean {
-  const start = getWeekStart(today);
-  const end = getWeekEnd(today);
+  const start = getLocalWeekStart(today);
+  const end = getLocalWeekEnd(today);
   const t = new Date(session.startedAt).getTime();
   return t >= start.getTime() && t <= end.getTime();
 }
@@ -120,34 +100,37 @@ export function getHeatmapData(
     if (teamId && s.teamId !== teamId) continue;
     if (categoryId && s.categoryId !== categoryId) continue;
     const d = new Date(s.startedAt);
-    const jsDay = d.getUTCDay(); // 0=Sun
+    const jsDay = d.getDay(); // 0=Sun
     const displayDay = jsDay === 0 ? 6 : jsDay - 1; // Mon=0, Sun=6
-    const hour = d.getUTCHours();
+    const hour = d.getHours();
     matrix[displayDay][hour] += sessionMinutes(s);
   }
   return matrix;
 }
 
 export function getStreak(sessions: Session[], today: Date): number {
-  const todayStr = toDateString(today.toISOString());
-  const sessionDates = new Set(sessions.map((s) => toDateString(s.endedAt)));
+  const todayStr = toLocalDateString(today);
+  const sessionDates = new Set(
+    sessions.map((s) => toLocalDateString(new Date(s.endedAt))),
+  );
 
   // Check if today has a session; if not, start counting from yesterday
   const startStr = sessionDates.has(todayStr)
     ? todayStr
     : (() => {
         const y = new Date(today);
-        y.setUTCDate(y.getUTCDate() - 1);
-        return toDateString(y.toISOString());
+        y.setDate(y.getDate() - 1);
+        return toLocalDateString(y);
       })();
 
   if (!sessionDates.has(startStr)) return 0;
 
   let streak = 0;
-  const cursor = new Date(startStr + 'T12:00:00.000Z');
-  while (sessionDates.has(toDateString(cursor.toISOString()))) {
+  const [year, month, day] = startStr.split('-').map(Number);
+  const cursor = new Date(year, month - 1, day, 12);
+  while (sessionDates.has(toLocalDateString(cursor))) {
     streak++;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
 }
@@ -160,8 +143,9 @@ export function getContextSwitches(
     (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
   );
 
-  const todayStr = toDateString(today.toISOString());
-  const weekStart = getWeekStart(today);
+  const todayStr = toLocalDateString(today);
+  const weekStart = getLocalWeekStart(today);
+  const weekEnd = getLocalWeekEnd(today);
 
   let todaySwitches = 0;
   let weekSwitches = 0;
@@ -169,7 +153,7 @@ export function getContextSwitches(
   let prevWeek: Session | null = null;
 
   for (const s of sorted) {
-    const sDate = toDateString(new Date(s.startedAt).toISOString());
+    const sDate = toLocalDateString(new Date(s.startedAt));
     const sTime = new Date(s.startedAt).getTime();
 
     if (sDate === todayStr) {
@@ -182,7 +166,7 @@ export function getContextSwitches(
       prevToday = s;
     }
 
-    if (sTime >= weekStart.getTime() && sTime <= getWeekEnd(today).getTime()) {
+    if (sTime >= weekStart.getTime() && sTime <= weekEnd.getTime()) {
       if (
         prevWeek &&
         (prevWeek.teamId !== s.teamId || prevWeek.categoryId !== s.categoryId)
@@ -231,8 +215,10 @@ export function getDailyMetrics(
   teams: Team[],
   today: Date,
 ): DailyMetrics {
-  const todayStr = toDateString(today.toISOString());
-  const todaySessions = sessions.filter((s) => toDateString(s.startedAt) === todayStr);
+  const todayStr = toLocalDateString(today);
+  const todaySessions = sessions.filter(
+    (s) => toLocalDateString(new Date(s.startedAt)) === todayStr,
+  );
 
   const totalMinutes = todaySessions.reduce((acc, s) => acc + sessionMinutes(s), 0);
   const minutesById = new Map<string, number>();

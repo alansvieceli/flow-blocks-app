@@ -6,11 +6,11 @@
 
 ## Status
 
-Pending
+Pending manual verification
 
 ## Description
 
-Run the full quality gate and verify all spec 007 acceptance criteria.
+Run the full quality gate and verify all current spec 007 acceptance criteria.
 
 ```bash
 npm run check
@@ -31,9 +31,15 @@ npm run check
 - [ ] Mais menu shows Trabalho (Equipes, Histórico) and App (Lembretes disabled) sections.
 - [ ] Navigating to Equipes from Mais shows the restyled dark-theme Teams screen.
 - [ ] Navigating to Histórico from Mais shows the restyled dark-theme History screen.
-- [ ] Painel tab shows "Em breve" placeholder.
-- [ ] Lembretes tab shows "Em breve" placeholder.
+- [ ] Painel tab shows the implemented dashboard from spec 005.
+- [ ] Lembretes tab shows the implemented reminder list from spec 004.
 - [ ] Tab bar shows 4 tabs with correct icons and colors.
+
+## Latest Automated Validation
+
+- `npm test -- metrics.test.ts` passed after local-date metric fixes.
+- `npm test -- personalMetrics.test.ts` passed after daily plan status persistence fixes.
+- `npm test -- activeSessionStorage.test.ts` passed after active-session subscription fixes.
 
 ## Acceptance Criteria
 

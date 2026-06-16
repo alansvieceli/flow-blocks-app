@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getActiveSession } from '../storage/activeSessionStorage';
+import {
+  getActiveSession,
+  subscribeActiveSession,
+} from '../storage/activeSessionStorage';
 import { ActiveSession } from '../types';
 
 function elapsedSeconds(startedAt: string): number {
@@ -42,8 +45,21 @@ export function useActiveSession() {
 
   useEffect(() => {
     void refresh();
-    return () => stopTick();
-  }, [refresh, stopTick]);
+    const unsubscribe = subscribeActiveSession((active) => {
+      setActiveSession(active);
+      if (active) {
+        setElapsed(elapsedSeconds(active.startedAt));
+        startTick(active.startedAt);
+      } else {
+        stopTick();
+        setElapsed(0);
+      }
+    });
+    return () => {
+      unsubscribe();
+      stopTick();
+    };
+  }, [refresh, startTick, stopTick]);
 
   return { activeSession, elapsed, refresh };
 }

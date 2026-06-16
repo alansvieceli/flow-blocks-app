@@ -18,6 +18,7 @@ The user works for multiple teams (e.g. "Equipe X", "Equipe Y") — including ni
 - Spec 004 - Reminders: scheduled local notifications, optionally linked to a category/team.
 - Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak, daily/weekly context-switch count, weekly team-balance alert.
 - Spec 006 - Personal Time Planner: user-defined personal activities, recurring weekly templates per weekday, daily plan with check/no-check, personal time chart.
+- Spec 007 - UI Layout: dark visual identity, 4-tab navigation, Home tracker, and persistent active-session banner.
 
 Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync, monetization, brain dump.
 
@@ -30,16 +31,22 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 ## Core Data Concepts
 
 - `teams`: user-managed list of teams/projects (id, name, optional max weekly % target).
-- `sessions`: recorded Pomodoro focus/break blocks (category, team, planned/actual duration, timestamps, completed flag).
-- `settings`: default focus/break durations (25/5).
+- `sessions`: recorded work blocks (category, team, timestamps, actual duration, optional note).
+- `active_session`: one currently running work session, mirrored into a persistent banner above the tab bar.
+- `settings`: app settings, including whether reminder notifications are enabled.
 - `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
 - `personalActivities`: user-defined leisure activities (id, name).
 - `personalWeeklyTemplate`: recurring plan per weekday (activity + planned duration).
-- `personalDailyPlan`: per-date plan entries generated from the template, with done/not-done status.
+- `personalDailyPlan`: per-local-date plan entries generated from the template, with `pending`, `done`, or `not-done` status.
+
+Calendar-based metrics and daily plans use the device's local date/time, not UTC calendar days.
 
 ## Primary Navigation
 
-To be defined during spec 003 planning. Expected top-level areas: Pomodoro (setup + timer), History, Teams management, Reminders, Dashboard.
+- **Início**: daily metrics, new work block, active session card, tonight plan, personal chart.
+- **Painel**: weekly metrics, heatmap, streak, context switches, and team-balance alerts.
+- **Lembretes**: reminder list and creation/editing flow.
+- **Mais**: Teams, History, personal activities, weekly template, and settings.
 
 ## Current Workflow
 

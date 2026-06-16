@@ -36,6 +36,26 @@ describe('getPersonalDoneMinutesByActivity', () => {
     expect(result).toEqual([]);
   });
 
+  it('does not count entries marked not done', () => {
+    const plan: PersonalDailyPlan = {
+      date: '2026-06-16',
+      entries: [
+        {
+          id: 'not-done',
+          activityId: 'a1',
+          done: false,
+          status: 'not-done',
+          plannedMinutes: 30,
+        },
+      ],
+    };
+    const result = getPersonalDoneMinutesByActivity([plan], [ACT_A], {
+      period: 'currentWeek',
+      today: TODAY,
+    });
+    expect(result).toEqual([]);
+  });
+
   it('sums done minutes for a single activity', () => {
     const plan1 = makePlan('2026-06-15', [
       { activityId: 'a1', done: true, plannedMinutes: 30 },

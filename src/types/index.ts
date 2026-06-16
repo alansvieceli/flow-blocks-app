@@ -43,10 +43,13 @@ export interface PersonalWeeklyTemplateDay {
   entries: { activityId: string; plannedMinutes: number }[];
 }
 
+export type PersonalDailyPlanEntryStatus = 'pending' | 'done' | 'not-done';
+
 export interface PersonalDailyPlanEntry {
   id: string;
   activityId: string;
   plannedMinutes: number;
+  status?: PersonalDailyPlanEntryStatus;
   done: boolean;
 }
 

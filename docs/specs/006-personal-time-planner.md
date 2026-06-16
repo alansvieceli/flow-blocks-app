@@ -26,7 +26,7 @@ Complements the work-focused specs (003–005). Personal time tracking is intent
 
 - `personalActivities`: `{ id: string; name: string }[]`
 - `personalWeeklyTemplate`: `{ dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6; entries: { activityId: string; plannedMinutes: number }[] }[]` (0 = Sunday, 1 = Monday, …, 6 = Saturday)
-- `personalDailyPlan`: `{ date: string; entries: { id: string; activityId: string; plannedMinutes: number; done: boolean }[] }[]` — one record per calendar date, generated from the weekly template when the day is first opened (or empty if no template). Edits to the daily plan do not affect the template.
+- `personalDailyPlan`: `{ date: string; entries: { id: string; activityId: string; plannedMinutes: number; done: boolean; status?: 'pending' | 'done' | 'not-done' }[] }[]` — one record per local calendar date, generated from the weekly template when the day is first opened (or empty if no template). Edits to the daily plan do not affect the template. `status` persists the three-state UI; `done` is retained for compatibility with older stored entries.
 
 A deleted activity does not delete historical daily plan entries; those entries retain the old `activityId` and the UI displays "Unknown activity" if the id no longer resolves.
 

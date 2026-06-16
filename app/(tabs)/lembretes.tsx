@@ -121,20 +121,12 @@ export default function LembretesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Lembretes</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/lembrete-form')}
-          style={styles.addBtn}
-        >
-          <Text style={styles.addBtnText}>+ Novo</Text>
-        </TouchableOpacity>
       </View>
 
       {reminders.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="notifications-outline" size={48} color={colors.tabInactive} />
-          <Text style={styles.emptyText}>
-            Nenhum lembrete. Toque em + Novo para criar.
-          </Text>
+          <Text style={styles.emptyText}>Nenhum lembrete. Toque em + para criar.</Text>
         </View>
       ) : (
         <FlatList
@@ -162,6 +154,22 @@ export default function LembretesScreen() {
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
         />
       )}
+
+      <TouchableOpacity
+        onPress={() => router.push('/lembrete-form')}
+        activeOpacity={0.85}
+        style={styles.fab}
+        accessibilityLabel="Criar lembrete"
+      >
+        <LinearGradient
+          colors={[colors.accentFrom, colors.accentTo]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.fabGradient}
+        >
+          <Ionicons name="add" size={28} color={colors.textPrimary} />
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -176,8 +184,24 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   title: { ...typography.screenTitle, color: colors.textPrimary },
-  addBtn: { padding: 4 },
-  addBtnText: { color: colors.accentFrom, fontSize: 15, fontWeight: '700' },
+  fab: {
+    position: 'absolute',
+    bottom: 28,
+    right: 24,
+    borderRadius: 32,
+    elevation: 6,
+    shadowColor: colors.accentFrom,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  fabGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
@@ -186,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
-  listContent: { padding: 16, paddingTop: 4, paddingBottom: 32 },
+  listContent: { padding: 16, paddingTop: 4, paddingBottom: 100 },
   itemSeparator: { height: 8 },
   sectionLabel: {
     ...typography.sectionLabel,
