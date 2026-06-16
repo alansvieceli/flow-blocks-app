@@ -2,6 +2,7 @@
   "expo": {
     "name": "flow-blocks-app",
     "slug": "flow-blocks-app",
+    "scheme": "flow-blocks-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
