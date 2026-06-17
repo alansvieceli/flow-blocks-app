@@ -19,6 +19,7 @@ The user works for multiple teams (e.g. "Equipe X", "Equipe Y") — including ni
 - Spec 005 - Time Visibility Dashboard: weekly metrics, hourly heatmap (filterable by team/category), focus streak, daily/weekly context-switch count, weekly team-balance alert.
 - Spec 006 - Personal Time Planner: user-defined personal activities, recurring weekly templates per weekday, daily plan with check/no-check, personal time chart.
 - Spec 007 - UI Layout: dark visual identity, 4-tab navigation, Home tracker, and persistent active-session banner.
+- Spec 009 - UX Navigation Refactor: simplified Home, analytics-focused Dashboard, polished Reminders flow, clearer Mais information architecture, and shared app data loading.
 
 Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync, monetization, brain dump.
 
@@ -41,12 +42,14 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 
 Calendar-based metrics and daily plans use the device's local date/time, not UTC calendar days.
 
+Common tab data is loaded through a shared React provider (`AppDataProvider`) so screens can keep previous local data visible while refreshing instead of rendering incorrect empty states.
+
 ## Primary Navigation
 
-- **Início**: daily metrics, new work block, active session card, tonight plan, personal chart.
-- **Painel**: weekly metrics, heatmap, streak, context switches, and team-balance alerts.
+- **Início**: compact daily metrics, new work block, active session card, and tonight plan shortcut.
+- **Painel**: weekly metrics, heatmap, streak, context switches, team-balance alerts, and personal chart.
 - **Lembretes**: reminder list and creation/editing flow.
-- **Mais**: Teams, History, personal activities, weekly template, and settings.
+- **Mais**: Trabalho (Equipes, Histórico), Pessoal (Atividades, Template semanal), and App (Configurações).
 
 ## Current Workflow
 

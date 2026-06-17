@@ -13,16 +13,10 @@ import {
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { toLocalDateString } from '../src/lib/localDate';
-import {
-  getPersonalActivities,
-  getPersonalDailyPlans,
-  getPersonalWeeklyTemplate,
-  savePersonalDailyPlans,
-} from '../src/storage/personalStorage';
+import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 import {
-  PersonalActivity,
   PersonalDailyPlan,
   PersonalDailyPlanEntry,
   PersonalDailyPlanEntryStatus,
@@ -64,9 +58,14 @@ export default function PlanoDiaScreen() {
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const today = new Date();
   const dateStr = dateParam ?? toLocalDateString(today);
+  const {
+    personalActivities: activities,
+    personalDailyPlans,
+    personalWeeklyTemplate,
+    updatePersonalDailyPlans,
+  } = useAppData();
 
   const [plan, setPlan] = useState<PersonalDailyPlan>({ date: dateStr, entries: [] });
-  const [activities, setActivities] = useState<PersonalActivity[]>([]);
   const [preFilled, setPreFilled] = useState(false);
   const [entryStates, setEntryStates] = useState<Map<string, DoneState>>(new Map());
 
@@ -77,43 +76,34 @@ export default function PlanoDiaScreen() {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    async function load() {
-      const [plans, template, acts] = await Promise.all([
-        getPersonalDailyPlans(),
-        getPersonalWeeklyTemplate(),
-        getPersonalActivities(),
-      ]);
-      setActivities(acts);
-
-      const existing = plans.find((p) => p.date === dateStr);
-      if (existing) {
-        setPlan(existing);
-        const stateMap = new Map<string, DoneState>();
-        for (const e of existing.entries) {
-          stateMap.set(e.id, getStateFromEntry(e));
-        }
-        setEntryStates(stateMap);
-      } else {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        const jsDay = new Date(year, month - 1, day, 12).getDay();
-        const newPlan = buildFromTemplate(template, jsDay, dateStr);
-        const allPlans = [...plans, newPlan];
-        await savePersonalDailyPlans(allPlans);
-        setPlan(newPlan);
-        if (newPlan.entries.length > 0) setPreFilled(true);
-        const stateMap = new Map<string, DoneState>();
-        for (const e of newPlan.entries) stateMap.set(e.id, 'pending');
-        setEntryStates(stateMap);
+    const existing = personalDailyPlans.find((p) => p.date === dateStr);
+    if (existing) {
+      setPlan(existing);
+      const stateMap = new Map<string, DoneState>();
+      for (const e of existing.entries) {
+        stateMap.set(e.id, getStateFromEntry(e));
       }
+      setEntryStates(stateMap);
+      return;
     }
-    void load();
-  }, [dateStr]);
+
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const jsDay = new Date(year, month - 1, day, 12).getDay();
+    const newPlan = buildFromTemplate(personalWeeklyTemplate, jsDay, dateStr);
+    setPlan(newPlan);
+    if (newPlan.entries.length > 0) setPreFilled(true);
+    const stateMap = new Map<string, DoneState>();
+    for (const e of newPlan.entries) stateMap.set(e.id, 'pending');
+    setEntryStates(stateMap);
+    void updatePersonalDailyPlans([...personalDailyPlans, newPlan]);
+  }, [dateStr, personalDailyPlans, personalWeeklyTemplate, updatePersonalDailyPlans]);
 
   async function savePlan(updatedPlan: PersonalDailyPlan) {
-    const plans = await getPersonalDailyPlans();
-    const updated = plans.map((p) => (p.date === dateStr ? updatedPlan : p));
+    const updated = personalDailyPlans.map((p) =>
+      p.date === dateStr ? updatedPlan : p,
+    );
     if (!updated.find((p) => p.date === dateStr)) updated.push(updatedPlan);
-    await savePersonalDailyPlans(updated);
+    await updatePersonalDailyPlans(updated);
     setPlan(updatedPlan);
   }
 

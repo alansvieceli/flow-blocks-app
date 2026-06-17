@@ -1,12 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { getCategoryLabel } from '../src/lib/categories';
 import { formatDuration } from '../src/lib/formatDuration';
-import { getSessions } from '../src/storage/sessionsStorage';
-import { getTeams } from '../src/storage/teamsStorage';
+import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 import { Session, Team } from '../src/types';
@@ -113,25 +111,13 @@ function SessionCard({ session, teams }: { session: Session; teams: Team[] }) {
 }
 
 export default function HistoricoScreen() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const { sessions, teams } = useAppData();
   const [filter, setFilter] = useState<FilterType>('hoje');
-
-  useFocusEffect(
-    useCallback(() => {
-      async function load() {
-        const [s, t] = await Promise.all([getSessions(), getTeams()]);
-        const sorted = [...s].sort(
-          (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
-        );
-        setSessions(sorted);
-        setTeams(t);
-      }
-      void load();
-    }, []),
+  const sortedSessions = [...sessions].sort(
+    (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
   );
 
-  const filtered = filterSessions(sessions, filter);
+  const filtered = filterSessions(sortedSessions, filter);
   const groups = groupByDay(filtered);
 
   const filterOptions: { key: FilterType; label: string }[] = [

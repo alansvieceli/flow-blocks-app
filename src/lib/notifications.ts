@@ -1,18 +1,43 @@
+import { Platform } from 'react-native';
 import { Reminder } from '../types';
 
-// expo-notifications was removed from Expo Go in SDK 53.
-// We load it dynamically so the app still works in Expo Go (without notifications).
+const DEFAULT_CHANNEL_ID = 'default';
+
+// Push notifications are not available in Expo Go on Android since SDK 53.
+// Local scheduled notifications remain available, so keep the module optional for tests
+// and unsupported runtimes while still configuring it when present.
 let ExpoNotifications: any = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   ExpoNotifications = require('expo-notifications');
+  ExpoNotifications.setNotificationHandler?.({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
 } catch {
-  // running in Expo Go or environment without expo-notifications
+  // running in an environment without expo-notifications
+}
+
+async function ensureAndroidNotificationChannel(): Promise<void> {
+  if (!ExpoNotifications || Platform.OS !== 'android') return;
+  if (!ExpoNotifications.setNotificationChannelAsync) return;
+
+  await ExpoNotifications.setNotificationChannelAsync(DEFAULT_CHANNEL_ID, {
+    name: 'Lembretes',
+    importance: ExpoNotifications.AndroidImportance?.MAX ?? 5,
+    vibrationPattern: [0, 250, 250, 250],
+    sound: 'default',
+  });
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
   if (!ExpoNotifications) return false;
   try {
+    await ensureAndroidNotificationChannel();
     const { status } = await ExpoNotifications.requestPermissionsAsync();
     return status === 'granted';
   } catch {
@@ -27,15 +52,18 @@ export async function scheduleReminderNotification(
   try {
     const trigger = new Date(reminder.datetime);
     if (trigger.getTime() <= Date.now()) return null;
+    await ensureAndroidNotificationChannel();
     const notificationId = await ExpoNotifications.scheduleNotificationAsync({
       content: {
         title: reminder.title,
         body: reminder.description ?? undefined,
         data: { reminderId: reminder.id },
+        sound: 'default',
       },
       trigger: {
         type: ExpoNotifications.SchedulableTriggerInputTypes.DATE,
         date: trigger,
+        channelId: DEFAULT_CHANNEL_ID,
       },
     });
     return notificationId;

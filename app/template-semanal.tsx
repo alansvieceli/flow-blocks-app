@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -14,14 +14,10 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import {
-  getPersonalActivities,
-  getPersonalWeeklyTemplate,
-  savePersonalWeeklyTemplate,
-} from '../src/storage/personalStorage';
+import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
-import { PersonalActivity, PersonalWeeklyTemplateDay } from '../src/types';
+import { PersonalWeeklyTemplateDay } from '../src/types';
 
 const DAY_NAMES = [
   'Segunda-feira',
@@ -45,8 +41,11 @@ function getDayEntries(
 }
 
 export default function TemplateSemanalScreen() {
-  const [template, setTemplate] = useState<PersonalWeeklyTemplateDay[]>([]);
-  const [activities, setActivities] = useState<PersonalActivity[]>([]);
+  const {
+    personalActivities: activities,
+    personalWeeklyTemplate: template,
+    updatePersonalWeeklyTemplate,
+  } = useAppData();
   const [editingDay, setEditingDay] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | null>(null);
 
   // mini-form state
@@ -56,25 +55,12 @@ export default function TemplateSemanalScreen() {
   const [durationStr, setDurationStr] = useState('');
   const [formError, setFormError] = useState('');
 
-  useEffect(() => {
-    async function load() {
-      const [t, a] = await Promise.all([
-        getPersonalWeeklyTemplate(),
-        getPersonalActivities(),
-      ]);
-      setTemplate(t);
-      setActivities(a);
-    }
-    void load();
-  }, []);
-
   function resolveActivity(activityId: string): string {
     return activities.find((a) => a.id === activityId)?.name ?? 'Atividade removida';
   }
 
   async function updateTemplate(updated: PersonalWeeklyTemplateDay[]) {
-    setTemplate(updated);
-    await savePersonalWeeklyTemplate(updated);
+    await updatePersonalWeeklyTemplate(updated);
   }
 
   function openAddBlock() {

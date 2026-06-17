@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import { AppSettings, getSettings, saveSettings } from '../src/storage/settingsStorage';
+import { useAppData } from '../src/state/AppDataProvider';
+import { AppSettings } from '../src/storage/settingsStorage';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 
@@ -37,16 +37,11 @@ function ToggleRow({
 }
 
 export default function ConfiguracoesScreen() {
-  const [settings, setSettings] = useState<AppSettings>({ notificationsEnabled: true });
-
-  useEffect(() => {
-    void getSettings().then(setSettings);
-  }, []);
+  const { settings, updateSettings } = useAppData();
 
   async function update(patch: Partial<AppSettings>) {
     const updated = { ...settings, ...patch };
-    setSettings(updated);
-    await saveSettings(updated);
+    await updateSettings(updated);
   }
 
   return (

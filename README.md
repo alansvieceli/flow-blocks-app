@@ -9,11 +9,12 @@ locally on the device with no backend, sync, authentication, or paid services.
 ## Current App Behavior
 
 - Four main tabs: Início, Painel, Lembretes, and Mais.
-- Início: start/stop work sessions by category and team, see today's work summary, active session state, tonight's personal plan, and personal activity chart.
-- Painel: weekly category/team metrics, hourly heatmap, streak, context-switch counts, and team-balance alerts.
+- Início: start/stop work sessions by category and team, see today's work summary, active session state, and a compact tonight plan shortcut.
+- Painel: weekly category/team metrics, hourly heatmap, streak, context-switch counts, team-balance alerts, and personal activity chart.
 - Lembretes: create, edit, delete, and schedule local reminders.
 - Mais: access Equipes, Histórico, Atividades, Template semanal, and Configurações.
 - Active work sessions show a running banner above the tab bar from every tab.
+- Core local data is loaded through a shared app data provider to reduce tab flicker.
 - Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 
 ## Requirements
@@ -78,8 +79,6 @@ The app stores data in AsyncStorage on the device:
 
 Calendar-based summaries use the device's local date and time.
 
-```
-
 ## Project Workflow
 
 The project follows a spec-first workflow documented in `AGENTS.md` and `docs/standards/`:
@@ -93,4 +92,3 @@ The project follows a spec-first workflow documented in `AGENTS.md` and `docs/st
 ## Roadmap
 
 Specs, plans, and tasks in `docs/` remain the source for planned and completed work.
-```

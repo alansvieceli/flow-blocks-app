@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -14,24 +14,18 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import {
-  getPersonalActivities,
-  savePersonalActivities,
-} from '../src/storage/personalStorage';
+import { Card, EmptyState, FabButton } from '../src/components/common';
+import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 import { PersonalActivity } from '../src/types';
 
 export default function AtividadesScreen() {
-  const [activities, setActivities] = useState<PersonalActivity[]>([]);
+  const { personalActivities: activities, updatePersonalActivities } = useAppData();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputName, setInputName] = useState('');
   const [inputError, setInputError] = useState('');
-
-  useEffect(() => {
-    void getPersonalActivities().then(setActivities);
-  }, []);
 
   function openCreate() {
     setEditingId(null);
@@ -59,8 +53,7 @@ export default function AtividadesScreen() {
     } else {
       updated = [...activities, { id: Date.now().toString(), name }];
     }
-    await savePersonalActivities(updated);
-    setActivities(updated);
+    await updatePersonalActivities(updated);
     setModalVisible(false);
   }
 
@@ -72,8 +65,7 @@ export default function AtividadesScreen() {
         style: 'destructive',
         onPress: async () => {
           const updated = activities.filter((a) => a.id !== id);
-          await savePersonalActivities(updated);
-          setActivities(updated);
+          await updatePersonalActivities(updated);
         },
       },
     ]);
@@ -84,24 +76,17 @@ export default function AtividadesScreen() {
       <ScreenHeader title="Atividades pessoais" backTo="/(tabs)/mais" />
 
       {activities.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="list-outline" size={48} color={colors.tabInactive} />
-          <Text style={styles.emptyText}>
-            Nenhuma atividade. Toque em + para criar.
-          </Text>
-        </View>
+        <EmptyState
+          icon="list-outline"
+          message="Nenhuma atividade. Toque em + para criar."
+        />
       ) : (
         <FlatList
           data={activities}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
-            <LinearGradient
-              colors={[colors.cardFrom, colors.cardTo]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.row}
-            >
+            <Card style={styles.row}>
               <Text style={styles.rowName} numberOfLines={1}>
                 {item.name}
               </Text>
@@ -120,23 +105,13 @@ export default function AtividadesScreen() {
                   />
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            </Card>
           )}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
         />
       )}
 
-      {/* FAB */}
-      <TouchableOpacity onPress={openCreate} activeOpacity={0.85} style={styles.fab}>
-        <LinearGradient
-          colors={[colors.accentFrom, colors.accentTo]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
-        >
-          <Ionicons name="add" size={28} color={colors.textPrimary} />
-        </LinearGradient>
-      </TouchableOpacity>
+      <FabButton accessibilityLabel="Criar atividade" onPress={openCreate} />
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <KeyboardAvoidingView
@@ -189,32 +164,6 @@ export default function AtividadesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  fab: {
-    position: 'absolute',
-    bottom: 28,
-    right: 24,
-    borderRadius: 32,
-    elevation: 6,
-    shadowColor: colors.accentFrom,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 32,
-  },
-  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
   listContent: { padding: 16, paddingTop: 4, paddingBottom: 32 },
   itemSeparator: { height: 8 },
   row: {

@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -14,22 +14,18 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import { getTeams, saveTeams } from '../src/storage/teamsStorage';
+import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 import { Team } from '../src/types';
 
 export default function EquipesScreen() {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const { teams, updateTeams } = useAppData();
   const [newName, setNewName] = useState('');
   const [newPercent, setNewPercent] = useState('');
   const [editTeam, setEditTeam] = useState<Team | null>(null);
   const [editName, setEditName] = useState('');
   const [editPercent, setEditPercent] = useState('');
-
-  useEffect(() => {
-    getTeams().then(setTeams);
-  }, []);
 
   function parsePercent(value: string): number | null | 'invalid' {
     const trimmed = value.trim();
@@ -56,8 +52,7 @@ export default function EquipesScreen() {
       maxWeeklyPercent: percent,
     };
     const updated = [...teams, team];
-    setTeams(updated);
-    await saveTeams(updated);
+    await updateTeams(updated);
     setNewName('');
     setNewPercent('');
   }
@@ -83,8 +78,7 @@ export default function EquipesScreen() {
     const updated = teams.map((t) =>
       t.id === editTeam.id ? { ...t, name, maxWeeklyPercent: percent } : t,
     );
-    setTeams(updated);
-    await saveTeams(updated);
+    await updateTeams(updated);
     setEditTeam(null);
   }
 
@@ -96,8 +90,7 @@ export default function EquipesScreen() {
         style: 'destructive',
         onPress: async () => {
           const updated = teams.filter((t) => t.id !== team.id);
-          setTeams(updated);
-          await saveTeams(updated);
+          await updateTeams(updated);
         },
       },
     ]);

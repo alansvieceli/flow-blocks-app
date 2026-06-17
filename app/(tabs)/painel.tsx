@@ -1,8 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppHeader } from '../../src/components/AppHeader';
 import { CATEGORIES } from '../../src/lib/categories';
 import { toLocalDateString } from '../../src/lib/localDate';
 import {
@@ -17,8 +16,8 @@ import {
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
 } from '../../src/lib/metrics';
-import { getSessions } from '../../src/storage/sessionsStorage';
-import { getTeams } from '../../src/storage/teamsStorage';
+import { getPersonalDoneMinutesByActivity } from '../../src/lib/personalMetrics';
+import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
 import { Session, Team } from '../../src/types';
@@ -393,20 +392,90 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
   );
 }
 
-export default function PainelScreen() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      async function load() {
-        const [s, t] = await Promise.all([getSessions(), getTeams()]);
-        setSessions(s);
-        setTeams(t);
-      }
-      void load();
-    }, []),
+function PersonalChartSection() {
+  const { personalActivities, personalDailyPlans } = useAppData();
+  const [chartPeriod, setChartPeriod] = useState<'currentWeek' | 'last4Weeks'>(
+    'currentWeek',
   );
+  const chartData = getPersonalDoneMinutesByActivity(
+    personalDailyPlans,
+    personalActivities,
+    {
+      period: chartPeriod,
+      today: new Date(),
+    },
+  );
+  const total = chartData.reduce((acc, d) => acc + d.minutes, 0);
+
+  return (
+    <>
+      <Text style={styles.sectionLabel}>ATIVIDADES PESSOAIS</Text>
+      <LinearGradient
+        colors={[colors.cardFrom, colors.cardTo]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.card}
+      >
+        <View style={styles.chipsRowWrap}>
+          {(['currentWeek', 'last4Weeks'] as const).map((p) => (
+            <TouchableOpacity
+              key={p}
+              onPress={() => setChartPeriod(p)}
+              activeOpacity={0.8}
+            >
+              {chartPeriod === p ? (
+                <LinearGradient
+                  colors={[colors.accentFrom, colors.accentTo]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.chip}
+                >
+                  <Text style={styles.chipActiveText}>
+                    {p === 'currentWeek' ? 'Esta semana' : 'Últimas 4 sem'}
+                  </Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.chipInactive}>
+                  <Text style={styles.chipInactiveText}>
+                    {p === 'currentWeek' ? 'Esta semana' : 'Últimas 4 sem'}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {chartData.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhuma atividade concluída no período.</Text>
+        ) : (
+          chartData.map((d) => {
+            const pct = total > 0 ? (d.minutes / total) * 100 : 0;
+            const h = Math.floor(d.minutes / 60);
+            const m = d.minutes % 60;
+            return (
+              <View key={d.activityName} style={styles.chartRow}>
+                <View style={styles.chartLabelRow}>
+                  <Text style={styles.chartLabel} numberOfLines={1}>
+                    {d.activityName}
+                  </Text>
+                  <Text style={styles.chartValue}>
+                    {h}h {m}m
+                  </Text>
+                </View>
+                <View style={styles.chartBarTrack}>
+                  <View style={[styles.chartBarFill, { width: `${pct}%` }]} />
+                </View>
+              </View>
+            );
+          })
+        )}
+      </LinearGradient>
+    </>
+  );
+}
+
+export default function PainelScreen() {
+  const { sessions, teams } = useAppData();
 
   const today = new Date();
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
@@ -414,35 +483,28 @@ export default function PainelScreen() {
   const alerts = getTeamBalanceAlerts(sessions, teams, today);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerRow}>
-        <Text style={styles.screenTitle}>Painel</Text>
-        <Ionicons name="stats-chart-outline" size={20} color={colors.accentFrom} />
-      </View>
+    <View style={styles.container}>
+      <AppHeader title="Painel" />
+      <ScrollView contentContainerStyle={styles.content}>
+        <WeeklySection
+          categoryMetrics={categoryMetrics}
+          teamMetrics={teamMetrics}
+          alerts={alerts}
+        />
 
-      <WeeklySection
-        categoryMetrics={categoryMetrics}
-        teamMetrics={teamMetrics}
-        alerts={alerts}
-      />
+        <HeatmapSection sessions={sessions} teams={teams} />
 
-      <HeatmapSection sessions={sessions} teams={teams} />
+        <ExtrasSection sessions={sessions} teams={teams} />
 
-      <ExtrasSection sessions={sessions} teams={teams} />
-    </ScrollView>
+        <PersonalChartSection />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, gap: 12, paddingBottom: 40 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  screenTitle: { ...typography.screenTitle, color: colors.textPrimary },
   sectionLabel: {
     ...typography.sectionLabel,
     color: colors.textSecondary,
@@ -481,6 +543,12 @@ const styles = StyleSheet.create({
   emptyText: { ...typography.body, color: colors.textSecondary },
   chipsScroll: { marginVertical: 4 },
   chipsRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
+  chipsRowWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingBottom: 10,
+  },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   chipActiveText: { color: colors.chipActiveText, fontSize: 12, fontWeight: '700' },
   chipInactive: {
@@ -538,4 +606,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dailyTeam: { fontSize: 12, color: colors.textSecondary },
+  chartRow: { gap: 4, marginTop: 8 },
+  chartLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chartLabel: { fontSize: 12, color: colors.textPrimary, flex: 1 },
+  chartValue: { fontSize: 11, color: colors.textSecondary },
+  chartBarTrack: {
+    height: 6,
+    backgroundColor: colors.chipInactiveBackground,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  chartBarFill: {
+    height: 6,
+    backgroundColor: colors.success,
+    borderRadius: 3,
+  },
 });

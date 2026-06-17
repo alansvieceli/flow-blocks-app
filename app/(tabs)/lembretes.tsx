@@ -1,12 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import {
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Card, EmptyState, FabButton, LoadingState } from '../../src/components/common';
+import { ReminderForm } from '../../src/components/reminders/ReminderForm';
 import { cancelReminderNotification } from '../../src/lib/notifications';
 import { CATEGORIES } from '../../src/lib/categories';
-import { getReminders, saveReminders } from '../../src/storage/remindersStorage';
-import { getTeams } from '../../src/storage/teamsStorage';
+import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
 import { Reminder, Team } from '../../src/types';
@@ -37,12 +44,7 @@ function ReminderRow({
 
   return (
     <TouchableOpacity onPress={() => onEdit(reminder)} activeOpacity={0.8}>
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.row}
-      >
+      <Card style={styles.row}>
         <Ionicons
           name="notifications-outline"
           size={18}
@@ -75,38 +77,36 @@ function ReminderRow({
         <TouchableOpacity onPress={() => onDelete(reminder)} style={styles.deleteBtn}>
           <Ionicons name="trash-outline" size={18} color={colors.destructiveFrom} />
         </TouchableOpacity>
-      </LinearGradient>
+      </Card>
     </TouchableOpacity>
   );
 }
 
 export default function LembretesScreen() {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const router = useRouter();
-
-  useFocusEffect(
-    useCallback(() => {
-      async function load() {
-        const [r, t] = await Promise.all([getReminders(), getTeams()]);
-        setReminders(r);
-        setTeams(t);
-      }
-      void load();
-    }, []),
-  );
+  const { isLoading, reminders, teams, updateReminders } = useAppData();
+  const [formReminderId, setFormReminderId] = useState<string | undefined>();
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   async function handleDelete(reminder: Reminder) {
     if (reminder.notificationId) {
       await cancelReminderNotification(reminder.notificationId);
     }
     const updated = reminders.filter((r) => r.id !== reminder.id);
-    await saveReminders(updated);
-    setReminders(updated);
+    await updateReminders(updated);
   }
 
   function handleEdit(reminder: Reminder) {
-    router.push({ pathname: '/lembrete-form', params: { id: reminder.id } });
+    setFormReminderId(reminder.id);
+    setIsFormVisible(true);
+  }
+
+  function handleCreate() {
+    setFormReminderId(undefined);
+    setIsFormVisible(true);
+  }
+
+  function handleCloseForm() {
+    setIsFormVisible(false);
   }
 
   const now = new Date();
@@ -119,15 +119,15 @@ export default function LembretesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Lembretes</Text>
-      </View>
+      <AppHeader title="Lembretes" />
 
-      {reminders.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="notifications-outline" size={48} color={colors.tabInactive} />
-          <Text style={styles.emptyText}>Nenhum lembrete. Toque em + para criar.</Text>
-        </View>
+      {isLoading && reminders.length === 0 ? (
+        <LoadingState message="Carregando lembretes..." />
+      ) : reminders.length === 0 ? (
+        <EmptyState
+          icon="notifications-outline"
+          message="Nenhum lembrete. Toque em + para criar."
+        />
       ) : (
         <FlatList
           data={[
@@ -155,61 +155,32 @@ export default function LembretesScreen() {
         />
       )}
 
-      <TouchableOpacity
-        onPress={() => router.push('/lembrete-form')}
-        activeOpacity={0.85}
-        style={styles.fab}
-        accessibilityLabel="Criar lembrete"
+      <FabButton accessibilityLabel="Criar lembrete" onPress={handleCreate} />
+
+      <Modal
+        animationType="slide"
+        presentationStyle="overFullScreen"
+        transparent
+        visible={isFormVisible}
+        onRequestClose={handleCloseForm}
       >
-        <LinearGradient
-          colors={[colors.accentFrom, colors.accentTo]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
-        >
-          <Ionicons name="add" size={28} color={colors.textPrimary} />
-        </LinearGradient>
-      </TouchableOpacity>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Fechar formulário"
+            activeOpacity={1}
+            onPress={handleCloseForm}
+            style={styles.modalBackdrop}
+          />
+          <ReminderForm reminderId={formReminderId} onClose={handleCloseForm} />
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    paddingTop: 20,
-  },
-  title: { ...typography.screenTitle, color: colors.textPrimary },
-  fab: {
-    position: 'absolute',
-    bottom: 28,
-    right: 24,
-    borderRadius: 32,
-    elevation: 6,
-    shadowColor: colors.accentFrom,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 32,
-  },
-  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
   listContent: { padding: 16, paddingTop: 4, paddingBottom: 100 },
   itemSeparator: { height: 8 },
   sectionLabel: {
@@ -243,4 +214,12 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 11, color: colors.chipInactiveText },
   deleteBtn: { padding: 4 },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.42)',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+  },
 });

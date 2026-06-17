@@ -1,18 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../src/theme/colors';
 import { useActiveSession } from '../../src/lib/useActiveSession';
 import { formatDuration } from '../../src/lib/formatDuration';
 
 function ActiveSessionBanner() {
   const { activeSession, elapsed } = useActiveSession();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   if (!activeSession) return null;
 
   return (
-    <TouchableOpacity style={styles.banner} onPress={() => router.push('/(tabs)/')}>
+    <TouchableOpacity
+      style={[styles.banner, { bottom: Math.max(insets.bottom, 8) + 70 }]}
+      onPress={() => router.push('/(tabs)/')}
+    >
       <View style={styles.bannerLeft}>
         <View style={styles.recordingDot} />
         <Text style={styles.bannerRecording}>Gravando</Text>
@@ -25,11 +30,11 @@ function ActiveSessionBanner() {
 
 export default function TabsLayout() {
   return (
-    <>
-      <ActiveSessionBanner />
+    <View style={styles.tabsRoot}>
       <Tabs
         screenOptions={{
           headerShown: false,
+          sceneStyle: { backgroundColor: colors.background },
           tabBarStyle: {
             backgroundColor: colors.tabBarBackground,
             borderTopColor: colors.tabBarBorder,
@@ -76,15 +81,25 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
-    </>
+      <ActiveSessionBanner />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  tabsRoot: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   banner: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    zIndex: 10,
     backgroundColor: '#1a1228',
-    borderBottomColor: colors.cardBorder,
-    borderBottomWidth: 1,
+    borderColor: colors.cardBorder,
+    borderWidth: 1,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 10,
     flexDirection: 'row',

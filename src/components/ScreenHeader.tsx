@@ -33,6 +33,10 @@ export function ScreenHeader({
       onBack();
       return;
     }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
     if (backTo) {
       router.replace(backTo);
     }

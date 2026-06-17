@@ -1,17 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return 'Bom dia, Alan 👋';
-  if (h >= 12 && h < 18) return 'Boa tarde, Alan 👋';
-  return 'Boa noite, Alan 👋';
-}
+import { FlowBlocksLogo } from './FlowBlocksLogo';
 
 function formatDate(): string {
   const d = new Date();
@@ -34,30 +27,40 @@ function formatDate(): string {
 }
 
 interface Props {
-  action?: ReactNode;
+  greeting?: boolean;
+  title?: string;
 }
 
-export function AppHeader({ action }: Props) {
+export function AppHeader({ greeting, title }: Props) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) + 4 }]}>
-      <LinearGradient
-        colors={[colors.accentFrom, colors.accentTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.brand}
-      >
-        <Ionicons name="flash" size={12} color="#fff" />
-        <Text style={styles.brandText}>Flow Blocks</Text>
-      </LinearGradient>
+      <View style={styles.topRow}>
+        <FlowBlocksLogo />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Configurações"
+          activeOpacity={0.75}
+          hitSlop={8}
+          onPress={() => router.push('/configuracoes')}
+          style={styles.gear}
+        >
+          <Ionicons name="settings-outline" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
 
-      <View style={styles.greetingRow}>
-        <View style={styles.greetingLeft}>
-          <Text style={styles.greeting}>{getGreeting()}</Text>
+      {greeting ? (
+        <View style={styles.bottom}>
+          <Text style={styles.greeting}>Aloha :)</Text>
           <Text style={styles.date}>{formatDate()}</Text>
         </View>
-        {action != null ? <View style={styles.actionSlot}>{action}</View> : null}
-      </View>
+      ) : title != null ? (
+        <View style={styles.bottom}>
+          <Text style={styles.title}>{title}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -68,41 +71,35 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: colors.background,
   },
-  brand: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
-  brandText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  greetingRow: {
-    flexDirection: 'row',
+  gear: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  greetingLeft: {
-    flex: 1,
+  bottom: {
+    marginTop: 12,
     gap: 2,
   },
   greeting: {
     ...typography.screenTitle,
-    fontSize: 22,
+    fontSize: 24,
     color: colors.textPrimary,
   },
   date: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
   },
-  actionSlot: {
-    marginLeft: 12,
+  title: {
+    ...typography.screenTitle,
+    fontSize: 24,
+    color: colors.textPrimary,
   },
 });

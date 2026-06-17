@@ -1,6 +1,6 @@
 import { AppHeader } from '../../src/components/AppHeader';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Modal,
@@ -15,30 +15,10 @@ import { CATEGORIES } from '../../src/lib/categories';
 import { formatDuration } from '../../src/lib/formatDuration';
 import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
-import { getPersonalDoneMinutesByActivity } from '../../src/lib/personalMetrics';
-import {
-  clearActiveSession,
-  getActiveSession,
-  setActiveSession,
-} from '../../src/storage/activeSessionStorage';
-import {
-  getPersonalActivities,
-  getPersonalDailyPlans,
-  getPersonalWeeklyTemplate,
-  savePersonalDailyPlans,
-} from '../../src/storage/personalStorage';
-import { getSessions, saveSessions } from '../../src/storage/sessionsStorage';
-import { getTeams } from '../../src/storage/teamsStorage';
+import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
-import {
-  ActiveSession,
-  CategoryId,
-  PersonalActivity,
-  PersonalDailyPlan,
-  Session,
-  Team,
-} from '../../src/types';
+import { ActiveSession, CategoryId, PersonalDailyPlan } from '../../src/types';
 
 function elapsedSeconds(startedAt: string): number {
   return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
@@ -52,24 +32,30 @@ function formatMinutes(m: number): string {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const {
+    activeSession,
+    isLoading,
+    personalActivities,
+    personalDailyPlans,
+    personalWeeklyTemplate,
+    sessions,
+    setActiveSession,
+    teams,
+    clearActiveSession,
+    updatePersonalDailyPlans,
+    updateSessions,
+  } = useAppData();
   const [selectedCategory, setSelectedCategory] = useState<CategoryId | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [activeSession, setActive] = useState<ActiveSession | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [note, setNote] = useState('');
+  const [noteSessionId, setNoteSessionId] = useState<string | null>(null);
   const [lastSession, setLastSession] = useState<{
     categoryId: CategoryId;
     teamId: string | null;
   } | null>(null);
   const [todayPlan, setTodayPlan] = useState<PersonalDailyPlan | null>(null);
-  const [personalActivities, setPersonalActivities] = useState<PersonalActivity[]>([]);
-  const [chartPeriod, setChartPeriod] = useState<'currentWeek' | 'last4Weeks'>(
-    'currentWeek',
-  );
-  const [allPlans, setAllPlans] = useState<PersonalDailyPlan[]>([]);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -91,70 +77,43 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    async function init() {
-      const [t, active, s] = await Promise.all([
-        getTeams(),
-        getActiveSession(),
-        getSessions(),
-      ]);
-      setTeams(t);
-      setSessions(s);
-      if (active) {
-        setActive(active);
-        setSelectedCategory(active.categoryId);
-        setSelectedTeamId(active.teamId);
-        setElapsed(elapsedSeconds(active.startedAt));
-        startTick(active.startedAt);
-      }
+    if (!activeSession) {
+      stopTick();
+      setElapsed(0);
+      return;
     }
-    void init();
+    setSelectedCategory(activeSession.categoryId);
+    setSelectedTeamId(activeSession.teamId);
+    setElapsed(elapsedSeconds(activeSession.startedAt));
+    startTick(activeSession.startedAt);
     return () => stopTick();
-  }, [startTick, stopTick]);
+  }, [activeSession, startTick, stopTick]);
 
-  useFocusEffect(
-    useCallback(() => {
-      async function loadPersonal() {
-        const today = new Date();
-        const todayStr = toLocalDateString(today);
-        const [plans, template, acts, t, s] = await Promise.all([
-          getPersonalDailyPlans(),
-          getPersonalWeeklyTemplate(),
-          getPersonalActivities(),
-          getTeams(),
-          getSessions(),
-        ]);
-        setTeams(t);
-        setSessions(s);
-        setPersonalActivities(acts);
-        setAllPlans(plans);
+  useEffect(() => {
+    if (isLoading) return;
+    const today = new Date();
+    const todayStr = toLocalDateString(today);
+    const existing = personalDailyPlans.find((p) => p.date === todayStr);
+    if (existing) {
+      setTodayPlan(existing);
+      return;
+    }
 
-        const existing = plans.find((p) => p.date === todayStr);
-        if (existing) {
-          setTodayPlan(existing);
-        } else {
-          const jsDay = today.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-          const dayTemplate = template.find((d) => d.dayOfWeek === jsDay);
-          const entries: PersonalDailyPlan['entries'] = (
-            dayTemplate?.entries ?? []
-          ).map((e, i) => ({
-            id: `${todayStr}-${e.activityId}-${i}`,
-            activityId: e.activityId,
-            plannedMinutes: e.plannedMinutes,
-            done: false,
-            status: 'pending',
-          }));
-          const newPlan: PersonalDailyPlan = { date: todayStr, entries };
-          if (entries.length > 0) {
-            const updated = [...plans, newPlan];
-            await savePersonalDailyPlans(updated);
-            setAllPlans(updated);
-          }
-          setTodayPlan(newPlan);
-        }
-      }
-      void loadPersonal();
-    }, []),
-  );
+    const jsDay = today.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    const dayTemplate = personalWeeklyTemplate.find((d) => d.dayOfWeek === jsDay);
+    const entries: PersonalDailyPlan['entries'] = (dayTemplate?.entries ?? []).map(
+      (e, i) => ({
+        id: `${todayStr}-${e.activityId}-${i}`,
+        activityId: e.activityId,
+        plannedMinutes: e.plannedMinutes,
+        done: false,
+        status: 'pending',
+      }),
+    );
+    const newPlan: PersonalDailyPlan = { date: todayStr, entries };
+    setTodayPlan(newPlan);
+    void updatePersonalDailyPlans([...personalDailyPlans, newPlan]);
+  }, [isLoading, personalDailyPlans, personalWeeklyTemplate, updatePersonalDailyPlans]);
 
   const teamRequired = teams.length > 0;
   const canStart =
@@ -169,7 +128,6 @@ export default function HomeScreen() {
       startedAt: new Date().toISOString(),
     };
     await setActiveSession(session);
-    setActive(session);
     setElapsed(0);
     startTick(session.startedAt);
   }
@@ -179,7 +137,6 @@ export default function HomeScreen() {
     stopTick();
     const endedAt = new Date().toISOString();
     const durationSeconds = elapsedSeconds(activeSession.startedAt);
-    const sessions = await getSessions();
     const newSession = {
       id: activeSession.id,
       categoryId: activeSession.categoryId,
@@ -189,26 +146,26 @@ export default function HomeScreen() {
       durationSeconds,
       note: null,
     };
-    await saveSessions([...sessions, newSession]);
+    await updateSessions([...sessions, newSession]);
     await clearActiveSession();
     setLastSession({
       categoryId: activeSession.categoryId,
       teamId: activeSession.teamId,
     });
-    setActive(null);
     setElapsed(0);
+    setNoteSessionId(newSession.id);
     setNoteModalVisible(true);
   }
 
   async function handleSaveNote(skip: boolean) {
-    if (!skip && note.trim()) {
-      const sessions = await getSessions();
-      const updated = sessions.map((s, i) =>
-        i === sessions.length - 1 ? { ...s, note: note.trim() } : s,
+    if (!skip && note.trim() && noteSessionId) {
+      const updated = sessions.map((s) =>
+        s.id === noteSessionId ? { ...s, note: note.trim() } : s,
       );
-      await saveSessions(updated);
+      await updateSessions(updated);
     }
     setNote('');
+    setNoteSessionId(null);
     setNoteModalVisible(false);
   }
 
@@ -230,7 +187,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <AppHeader />
+      <AppHeader greeting />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Daily metrics */}
         {(() => {
@@ -459,83 +416,6 @@ export default function HomeScreen() {
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
-          );
-        })()}
-
-        {/* Personal chart */}
-        {(() => {
-          const chartData = getPersonalDoneMinutesByActivity(
-            allPlans,
-            personalActivities,
-            {
-              period: chartPeriod,
-              today: new Date(),
-            },
-          );
-          const total = chartData.reduce((acc, d) => acc + d.minutes, 0);
-          return (
-            <LinearGradient
-              colors={[colors.cardFrom, colors.cardTo]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.card}
-            >
-              <Text style={styles.cardSectionLabel}>ATIVIDADES PESSOAIS</Text>
-              <View style={styles.chipsRow}>
-                {(['currentWeek', 'last4Weeks'] as const).map((p) => (
-                  <TouchableOpacity
-                    key={p}
-                    onPress={() => setChartPeriod(p)}
-                    activeOpacity={0.8}
-                  >
-                    {chartPeriod === p ? (
-                      <LinearGradient
-                        colors={[colors.accentFrom, colors.accentTo]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.chipGradient}
-                      >
-                        <Text style={styles.chipActiveText}>
-                          {p === 'currentWeek' ? 'Esta semana' : 'Últimas 4 sem'}
-                        </Text>
-                      </LinearGradient>
-                    ) : (
-                      <View style={styles.chipInactive}>
-                        <Text style={styles.chipInactiveText}>
-                          {p === 'currentWeek' ? 'Esta semana' : 'Últimas 4 sem'}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {chartData.length === 0 ? (
-                <Text style={styles.chartEmpty}>
-                  Nenhuma atividade concluída no período.
-                </Text>
-              ) : (
-                chartData.map((d) => {
-                  const pct = total > 0 ? (d.minutes / total) * 100 : 0;
-                  const h = Math.floor(d.minutes / 60);
-                  const m = d.minutes % 60;
-                  return (
-                    <View key={d.activityName} style={styles.chartRow}>
-                      <View style={styles.chartLabelRow}>
-                        <Text style={styles.chartLabel} numberOfLines={1}>
-                          {d.activityName}
-                        </Text>
-                        <Text style={styles.chartValue}>
-                          {h}h {m}m
-                        </Text>
-                      </View>
-                      <View style={styles.chartBarTrack}>
-                        <View style={[styles.chartBarFill, { width: `${pct}%` }]} />
-                      </View>
-                    </View>
-                  );
-                })
-              )}
-            </LinearGradient>
           );
         })()}
 
@@ -782,25 +662,5 @@ const styles = StyleSheet.create({
     ...typography.sectionLabel,
     color: colors.textSecondary,
     marginTop: 4,
-  },
-  chartEmpty: { ...typography.body, color: colors.textSecondary },
-  chartRow: { gap: 4 },
-  chartLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  chartLabel: { fontSize: 12, color: colors.textPrimary, flex: 1 },
-  chartValue: { fontSize: 11, color: colors.textSecondary },
-  chartBarTrack: {
-    height: 6,
-    backgroundColor: colors.chipInactiveBackground,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  chartBarFill: {
-    height: 6,
-    backgroundColor: colors.success,
-    borderRadius: 3,
   },
 });

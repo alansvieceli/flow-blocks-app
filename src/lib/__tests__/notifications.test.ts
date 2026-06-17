@@ -5,6 +5,9 @@ import {
 } from '../notifications';
 
 jest.mock('expo-notifications', () => ({
+  AndroidImportance: { MAX: 5 },
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn(),
   requestPermissionsAsync: jest.fn(),
   scheduleNotificationAsync: jest.fn(),
   cancelScheduledNotificationAsync: jest.fn(),
@@ -13,6 +16,7 @@ jest.mock('expo-notifications', () => ({
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const ExpoNotifications = require('expo-notifications') as {
+  setNotificationChannelAsync: jest.Mock;
   requestPermissionsAsync: jest.Mock;
   scheduleNotificationAsync: jest.Mock;
   cancelScheduledNotificationAsync: jest.Mock;
@@ -29,11 +33,13 @@ const reminder = {
 
 describe('requestNotificationPermission', () => {
   it('returns true when granted', async () => {
+    ExpoNotifications.setNotificationChannelAsync.mockResolvedValue(undefined);
     ExpoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'granted' });
     expect(await requestNotificationPermission()).toBe(true);
   });
 
   it('returns false when denied', async () => {
+    ExpoNotifications.setNotificationChannelAsync.mockResolvedValue(undefined);
     ExpoNotifications.requestPermissionsAsync.mockResolvedValue({ status: 'denied' });
     expect(await requestNotificationPermission()).toBe(false);
   });
@@ -41,6 +47,7 @@ describe('requestNotificationPermission', () => {
 
 describe('scheduleReminderNotification', () => {
   it('schedules and returns notification id', async () => {
+    ExpoNotifications.setNotificationChannelAsync.mockResolvedValue(undefined);
     ExpoNotifications.scheduleNotificationAsync.mockResolvedValue('notif-123');
     const result = await scheduleReminderNotification(reminder);
     expect(result).toBe('notif-123');
