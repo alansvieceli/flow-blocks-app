@@ -1,4 +1,12 @@
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { useAppData } from '../src/state/AppDataProvider';
 import { AppSettings } from '../src/storage/settingsStorage';
@@ -37,11 +45,32 @@ function ToggleRow({
 }
 
 export default function ConfiguracoesScreen() {
-  const { settings, updateSettings } = useAppData();
+  const { settings, updateSettings, resetAll } = useAppData();
 
   async function update(patch: Partial<AppSettings>) {
     const updated = { ...settings, ...patch };
     await updateSettings(updated);
+  }
+
+  function confirmReset() {
+    Alert.alert(
+      'Restaurar padrão',
+      'Todos os dados serão apagados permanentemente: equipes, sessões, categorias, lembretes e atividades pessoais. Esta ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Restaurar',
+          style: 'destructive',
+          onPress: async () => {
+            await resetAll();
+            Alert.alert(
+              'Pronto',
+              'O app foi restaurado para as configurações originais.',
+            );
+          },
+        },
+      ],
+    );
   }
 
   return (
@@ -56,6 +85,21 @@ export default function ConfiguracoesScreen() {
             value={settings.notificationsEnabled}
             onToggle={(v) => update({ notificationsEnabled: v })}
           />
+        </View>
+
+        <SectionHeader title="DADOS" />
+        <View style={styles.section}>
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={confirmReset}
+          >
+            <View style={styles.rowText}>
+              <Text style={styles.dangerLabel}>Restaurar padrão</Text>
+              <Text style={styles.rowSublabel}>
+                Apaga todos os dados e volta ao estado inicial
+              </Text>
+            </View>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
@@ -87,7 +131,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
+  rowPressed: { opacity: 0.6 },
   rowText: { flex: 1, gap: 2 },
   rowLabel: { fontSize: 15, color: colors.textPrimary },
+  dangerLabel: { fontSize: 15, color: colors.destructiveFrom },
   rowSublabel: { fontSize: 12, color: colors.textSecondary },
 });

@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   clearActiveSession,
   getActiveSession,
@@ -26,6 +27,7 @@ import { getReminders, saveReminders } from '../storage/remindersStorage';
 import { getSessions, saveSessions } from '../storage/sessionsStorage';
 import { AppSettings, getSettings, saveSettings } from '../storage/settingsStorage';
 import { getTeams, saveTeams } from '../storage/teamsStorage';
+import { cancelAllNotifications } from '../lib/notifications';
 import {
   ActiveSession,
   Category,
@@ -56,6 +58,7 @@ interface AppDataState {
 interface AppDataContextValue extends AppDataState {
   clearActiveSession: () => Promise<void>;
   refreshAll: () => Promise<void>;
+  resetAll: () => Promise<void>;
   setActiveSession: (session: ActiveSession) => Promise<void>;
   updateCategories: (categories: Category[]) => Promise<void>;
   updatePersonalActivities: (activities: PersonalActivity[]) => Promise<void>;
@@ -70,6 +73,17 @@ interface AppDataContextValue extends AppDataState {
 }
 
 const DEFAULT_SETTINGS: AppSettings = { notificationsEnabled: true };
+
+const ALL_STORAGE_KEYS = [
+  'teams',
+  'sessions',
+  'categories',
+  'reminders',
+  'appSettings',
+  'personalActivities',
+  'personalWeeklyTemplate',
+  'personalDailyPlan',
+] as const;
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
 
@@ -168,6 +182,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         await clearActiveSession();
       },
       refreshAll,
+      resetAll: async () => {
+        await cancelAllNotifications();
+        await clearActiveSession();
+        await AsyncStorage.multiRemove([...ALL_STORAGE_KEYS]);
+        await refreshAll();
+      },
       setActiveSession: async (activeSession) => {
         setState((current) => ({ ...current, activeSession }));
         await persistActiveSession(activeSession);

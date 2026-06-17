@@ -82,3 +82,12 @@ export async function cancelReminderNotification(
     // ignore
   }
 }
+
+export async function cancelAllNotifications(): Promise<void> {
+  if (!ExpoNotifications) return;
+  try {
+    await ExpoNotifications.cancelAllScheduledNotificationsAsync();
+  } catch {
+    // ignore
+  }
+}
