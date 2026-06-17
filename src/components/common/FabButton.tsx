@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 
@@ -16,7 +15,6 @@ export function FabButton({
   onPress,
 }: FabButtonProps) {
   const insets = useSafeAreaInsets();
-  // 80px above safe area keeps the button above the tab bar (~49-56px) on all screens
   const bottom = Math.max(insets.bottom, 16) + 80;
 
   return (
@@ -27,14 +25,9 @@ export function FabButton({
       onPress={onPress}
       style={[styles.fab, { bottom }]}
     >
-      <LinearGradient
-        colors={[colors.accentFrom, colors.accentTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+      <View style={styles.inner}>
         <Ionicons name={icon} size={28} color={colors.textPrimary} />
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -45,15 +38,12 @@ const styles = StyleSheet.create({
     right: 24,
     borderRadius: 32,
     elevation: 6,
-    shadowColor: colors.accentFrom,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
   },
-  gradient: {
+  inner: {
     width: 60,
     height: 60,
     borderRadius: 30,
+    backgroundColor: colors.accentFrom,
     alignItems: 'center',
     justifyContent: 'center',
   },

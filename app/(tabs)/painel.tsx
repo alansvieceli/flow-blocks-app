@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -43,11 +42,11 @@ function MetricBar({
   if (accent === 'primary') {
     return (
       <View style={styles.barTrack}>
-        <LinearGradient
-          colors={[colors.accentFrom, colors.accentTo]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.barFill, { width: `${pct}%` }]}
+        <View
+          style={[
+            styles.barFill,
+            { width: `${pct}%`, backgroundColor: colors.accentFrom },
+          ]}
         />
       </View>
     );
@@ -78,12 +77,7 @@ function WeeklySection({
       <Text style={styles.sectionLabel}>ESTA SEMANA</Text>
 
       {/* Category card */}
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.metricRow}>
           <Text style={styles.metricLabel}>Foco Profundo</Text>
           <MetricBar
@@ -106,15 +100,10 @@ function WeeklySection({
             {formatMinutes(categoryMetrics.interruptionMinutes)}
           </Text>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Team card */}
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         {teamMetrics.length === 0 ? (
           <Text style={styles.emptyText}>Nenhuma equipe registrada esta semana.</Text>
         ) : (
@@ -133,7 +122,7 @@ function WeeklySection({
             </View>
           ))
         )}
-      </LinearGradient>
+      </View>
     </>
   );
 }
@@ -184,14 +173,9 @@ function HeatmapSection({
         <View style={styles.chipsRow}>
           <TouchableOpacity onPress={() => setSelectedTeamId(null)} activeOpacity={0.8}>
             {selectedTeamId === null ? (
-              <LinearGradient
-                colors={[colors.accentFrom, colors.accentTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.chip}
-              >
+              <View style={styles.chip}>
                 <Text style={styles.chipActiveText}>Todas as equipes</Text>
-              </LinearGradient>
+              </View>
             ) : (
               <View style={styles.chipInactive}>
                 <Text style={styles.chipInactiveText}>Todas as equipes</Text>
@@ -205,14 +189,9 @@ function HeatmapSection({
               activeOpacity={0.8}
             >
               {selectedTeamId === t.id ? (
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.chip}
-                >
+                <View style={styles.chip}>
                   <Text style={styles.chipActiveText}>{t.name}</Text>
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={styles.chipInactive}>
                   <Text style={styles.chipInactiveText}>{t.name}</Text>
@@ -235,14 +214,9 @@ function HeatmapSection({
             activeOpacity={0.8}
           >
             {selectedCategoryId === null ? (
-              <LinearGradient
-                colors={[colors.accentFrom, colors.accentTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.chip}
-              >
+              <View style={styles.chip}>
                 <Text style={styles.chipActiveText}>Todas as categorias</Text>
-              </LinearGradient>
+              </View>
             ) : (
               <View style={styles.chipInactive}>
                 <Text style={styles.chipInactiveText}>Todas as categorias</Text>
@@ -258,14 +232,9 @@ function HeatmapSection({
               activeOpacity={0.8}
             >
               {selectedCategoryId === c.id ? (
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.chip}
-                >
+                <View style={styles.chip}>
                   <Text style={styles.chipActiveText}>{c.label}</Text>
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={styles.chipInactive}>
                   <Text style={styles.chipInactiveText}>{c.label}</Text>
@@ -322,12 +291,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
     <>
       {/* Streak */}
       <Text style={styles.sectionLabel}>SEQUÊNCIA</Text>
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.streakRow}>
           <Text style={styles.streakNumber}>{streak}</Text>
           <View style={styles.streakLabels}>
@@ -337,16 +301,11 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
             </Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Context switches */}
       <Text style={styles.sectionLabel}>TROCAS DE CONTEXTO</Text>
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>Hoje</Text>
           <Text style={styles.switchValue}>{contextSwitches.today}</Text>
@@ -357,7 +316,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
           <Text style={styles.switchValue}>{contextSwitches.week}</Text>
           <Text style={styles.switchUnit}>trocas</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Team balance alerts */}
       {alerts.length > 0 && (
@@ -378,12 +337,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
       {dailyMetrics.totalMinutes > 0 && (
         <>
           <Text style={styles.sectionLabel}>HOJE</Text>
-          <LinearGradient
-            colors={[colors.cardFrom, colors.cardTo]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
+          <View style={styles.card}>
             <Text style={styles.dailyTotal}>
               {formatMinutes(dailyMetrics.totalMinutes)}
             </Text>
@@ -392,7 +346,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
                 {t.teamName}: {formatMinutes(t.minutes)}
               </Text>
             ))}
-          </LinearGradient>
+          </View>
         </>
       )}
     </>
@@ -417,12 +371,7 @@ function PersonalChartSection() {
   return (
     <>
       <Text style={styles.sectionLabel}>ATIVIDADES PESSOAIS</Text>
-      <LinearGradient
-        colors={[colors.cardFrom, colors.cardTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.chipsRowWrap}>
           {(['currentWeek', 'last4Weeks'] as const).map((p) => (
             <TouchableOpacity
@@ -431,16 +380,11 @@ function PersonalChartSection() {
               activeOpacity={0.8}
             >
               {chartPeriod === p ? (
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.chip}
-                >
+                <View style={styles.chip}>
                   <Text style={styles.chipActiveText}>
                     {p === 'currentWeek' ? 'Esta semana' : 'Últimas 4 sem'}
                   </Text>
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={styles.chipInactive}>
                   <Text style={styles.chipInactiveText}>
@@ -476,7 +420,7 @@ function PersonalChartSection() {
             );
           })
         )}
-      </LinearGradient>
+      </View>
     </>
   );
 }
@@ -521,6 +465,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 14,
   },
   metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -556,7 +501,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingBottom: 10,
   },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: colors.accentFrom,
+  },
   chipActiveText: { color: colors.chipActiveText, fontSize: 12, fontWeight: '700' },
   chipInactive: {
     paddingHorizontal: 12,

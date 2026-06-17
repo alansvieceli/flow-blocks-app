@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   Alert,
@@ -155,13 +154,7 @@ export default function TemplateSemanalScreen() {
               const name = resolveActivity(entry.activityId);
               const isRemoved = !activities.find((a) => a.id === entry.activityId);
               return (
-                <LinearGradient
-                  key={idx}
-                  colors={[colors.cardFrom, colors.cardTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={[styles.row, styles.rowSpaced]}
-                >
+                <View key={idx} style={[styles.row, styles.rowSpaced]}>
                   <View style={styles.rowContent}>
                     <Text
                       style={[styles.rowName, isRemoved && styles.removedText]}
@@ -193,7 +186,7 @@ export default function TemplateSemanalScreen() {
                       color={colors.destructiveFrom}
                     />
                   </TouchableOpacity>
-                </LinearGradient>
+                </View>
               );
             })
           )}
@@ -272,14 +265,9 @@ export default function TemplateSemanalScreen() {
                   activeOpacity={0.8}
                   style={styles.saveWrapper}
                 >
-                  <LinearGradient
-                    colors={[colors.accentFrom, colors.accentTo]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.saveBtn}
-                  >
+                  <View style={styles.saveBtn}>
                     <Text style={styles.saveBtnText}>Salvar</Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -304,12 +292,7 @@ export default function TemplateSemanalScreen() {
               onPress={() => setEditingDay(dayOfWeek)}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={[colors.cardFrom, colors.cardTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.row, styles.rowSpaced]}
-              >
+              <View style={[styles.row, styles.rowSpaced]}>
                 <View
                   style={[
                     styles.dayDot,
@@ -331,7 +314,7 @@ export default function TemplateSemanalScreen() {
                 <Text style={styles.editLink}>
                   {hasEntries ? 'Editar' : 'Adicionar'}
                 </Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -355,6 +338,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 14,
     gap: 10,
   },
@@ -392,7 +376,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   errorText: { fontSize: 12, color: colors.destructiveFrom },
   modalOverlay: {
@@ -404,7 +388,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     width: '100%',
-    backgroundColor: '#12122a',
+    backgroundColor: colors.cardFrom,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
@@ -423,6 +407,11 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: { color: colors.textSecondary, fontWeight: '600' },
   saveWrapper: { flex: 1 },
-  saveBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtn: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: colors.accentFrom,
+  },
   saveBtnText: { color: colors.textPrimary, fontWeight: '800', fontSize: 14 },
 });

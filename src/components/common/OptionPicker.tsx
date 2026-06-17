@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowSelected: {
-    backgroundColor: '#1a1048',
+    backgroundColor: colors.accentSubtle,
   },
   rowText: {
     flex: 1,

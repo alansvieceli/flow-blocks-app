@@ -1,5 +1,4 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -317,14 +316,9 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
           activeOpacity={0.8}
           style={styles.saveWrapper}
         >
-          <LinearGradient
-            colors={[colors.accentFrom, colors.accentTo]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.saveBtn}
-          >
+          <View style={styles.saveBtn}>
             <Text style={styles.saveBtnText}>Salvar</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -408,7 +402,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   inputMultiline: {
     minHeight: 72,
@@ -442,6 +436,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: colors.accentFrom,
   },
   saveBtnText: {
     color: colors.textPrimary,

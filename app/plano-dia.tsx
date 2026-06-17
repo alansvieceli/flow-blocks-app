@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -199,16 +198,13 @@ export default function PlanoDiaScreen() {
             const name = resolveActivity(entry.activityId);
             const removed = isRemoved(entry.activityId);
             return (
-              <LinearGradient
+              <View
                 key={entry.id}
-                colors={
-                  state === 'done'
-                    ? (['#0d2b1a', '#0a1f12'] as const)
-                    : ([colors.cardFrom, colors.cardTo] as const)
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.entryRow, styles.entryRowSpaced]}
+                style={[
+                  styles.entryRow,
+                  styles.entryRowSpaced,
+                  state === 'done' && styles.entryRowDone,
+                ]}
               >
                 <TouchableOpacity
                   onPress={() => toggleEntry(entry.id)}
@@ -262,7 +258,7 @@ export default function PlanoDiaScreen() {
                     color={colors.destructiveFrom}
                   />
                 </TouchableOpacity>
-              </LinearGradient>
+              </View>
             );
           })
         )}
@@ -342,14 +338,9 @@ export default function PlanoDiaScreen() {
                 activeOpacity={0.8}
                 style={styles.saveWrapper}
               >
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.saveBtn}
-                >
+                <View style={styles.saveBtn}>
                   <Text style={styles.saveBtnText}>Adicionar</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -374,8 +365,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 12,
     gap: 10,
+  },
+  entryRowDone: {
+    backgroundColor: colors.emeraldCard,
+    borderColor: colors.emeraldBorder,
   },
   entryRowSpaced: { marginBottom: 8 },
   entryContent: { flex: 1 },
@@ -418,7 +414,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   errorText: { fontSize: 12, color: colors.destructiveFrom },
   modalOverlay: {
@@ -430,7 +426,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     width: '100%',
-    backgroundColor: '#12122a',
+    backgroundColor: colors.cardFrom,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
@@ -449,6 +445,11 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: { color: colors.textSecondary, fontWeight: '600' },
   saveWrapper: { flex: 1 },
-  saveBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtn: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: colors.accentFrom,
+  },
   saveBtnText: { color: colors.textPrimary, fontWeight: '800', fontSize: 14 },
 });

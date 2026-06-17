@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -218,12 +217,7 @@ export default function HomeScreen() {
             },
           ];
           return (
-            <LinearGradient
-              colors={[colors.cardFrom, colors.cardTo]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.metricsCard}
-            >
+            <View style={styles.metricsCard}>
               <View style={styles.metricsRow}>
                 {cols.map((m) => (
                   <View key={m.label} style={styles.metricCol}>
@@ -232,18 +226,13 @@ export default function HomeScreen() {
                   </View>
                 ))}
               </View>
-            </LinearGradient>
+            </View>
           );
         })()}
 
         {/* Active session card */}
         {activeSession ? (
-          <LinearGradient
-            colors={[colors.cardFrom, colors.cardTo]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
+          <View style={styles.card}>
             <View style={styles.recordingRow}>
               <View style={styles.recordingDot} />
               <Text style={styles.recordingLabel}>Gravando</Text>
@@ -254,14 +243,7 @@ export default function HomeScreen() {
                 .filter((c) => c.id === selectedCategory)
                 .map((c) => (
                   <View key={c.id} style={styles.chipActive}>
-                    <LinearGradient
-                      colors={[colors.accentFrom, colors.accentTo]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.chipGradient}
-                    >
-                      <Text style={styles.chipActiveText}>{c.label}</Text>
-                    </LinearGradient>
+                    <Text style={styles.chipActiveText}>{c.label}</Text>
                   </View>
                 ))}
               {selectedTeamId &&
@@ -269,37 +251,20 @@ export default function HomeScreen() {
                   .filter((t) => t.id === selectedTeamId)
                   .map((t) => (
                     <View key={t.id} style={styles.chipActive}>
-                      <LinearGradient
-                        colors={[colors.accentFrom, colors.accentTo]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.chipGradient}
-                      >
-                        <Text style={styles.chipActiveText}>{t.name}</Text>
-                      </LinearGradient>
+                      <Text style={styles.chipActiveText}>{t.name}</Text>
                     </View>
                   ))}
             </View>
             <Text style={styles.startedAtLabel}>{startedAtLabel}</Text>
             <TouchableOpacity onPress={handleStop}>
-              <LinearGradient
-                colors={[colors.destructiveFrom, colors.destructiveTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.btn}
-              >
+              <View style={styles.btnDestructive}>
                 <Text style={styles.btnText}>Parar</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
-          </LinearGradient>
+          </View>
         ) : (
           /* Novo bloco card */
-          <LinearGradient
-            colors={[colors.cardFrom, colors.cardTo]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
+          <View style={styles.card}>
             <Text style={styles.cardSectionLabel}>NOVO BLOCO</Text>
 
             <OptionPicker
@@ -327,16 +292,11 @@ export default function HomeScreen() {
               disabled={!canStart}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={[colors.accentFrom, colors.accentTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.btn, !canStart && styles.btnDisabled]}
-              >
+              <View style={[styles.btn, !canStart && styles.btnDisabled]}>
                 <Text style={styles.btnText}>Iniciar</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
-          </LinearGradient>
+          </View>
         )}
 
         {/* Esta noite */}
@@ -347,6 +307,10 @@ export default function HomeScreen() {
           const goToPlano = () =>
             router.push({ pathname: '/plano-dia', params: { date: todayStr } });
 
+          const VISIBLE = 2;
+          const overflow = entries.length > VISIBLE ? entries.length - VISIBLE : 0;
+          const visibleEntries = overflow > 0 ? entries.slice(0, VISIBLE) : entries;
+
           function fmtMins(m: number): string {
             const h = Math.floor(m / 60);
             const min = m % 60;
@@ -356,23 +320,14 @@ export default function HomeScreen() {
           }
 
           return (
-            <LinearGradient
-              colors={[colors.cardFrom, colors.cardTo]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.tonightSection}
-            >
+            <View style={styles.tonightSection}>
               <TouchableOpacity
                 onPress={goToPlano}
                 activeOpacity={0.7}
                 style={styles.tonightHeaderRow}
               >
                 <View style={styles.tonightHeaderLeft}>
-                  <Ionicons
-                    name="moon-outline"
-                    size={14}
-                    color={colors.textSecondary}
-                  />
+                  <Ionicons name="moon-outline" size={14} color={colors.emerald} />
                   <Text style={styles.tonightLabel}>ESTA NOITE — PLANO PESSOAL</Text>
                 </View>
                 {entries.length > 0 && (
@@ -388,7 +343,7 @@ export default function HomeScreen() {
                 </Text>
               ) : (
                 <View style={styles.tonightCardsRow}>
-                  {entries.slice(0, 3).map((entry) => {
+                  {visibleEntries.map((entry) => {
                     const name =
                       personalActivities.find((a) => a.id === entry.activityId)?.name ??
                       'Removida';
@@ -414,9 +369,19 @@ export default function HomeScreen() {
                       </TouchableOpacity>
                     );
                   })}
+                  {overflow > 0 && (
+                    <TouchableOpacity
+                      onPress={goToPlano}
+                      activeOpacity={0.8}
+                      style={styles.tonightCardOverflow}
+                    >
+                      <Text style={styles.tonightOverflowCount}>+{overflow}</Text>
+                      <Text style={styles.tonightOverflowLabel}>{'ver\nplano'}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
-            </LinearGradient>
+            </View>
           );
         })()}
 
@@ -469,6 +434,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 16,
   },
   metricsRow: {
@@ -481,7 +447,7 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     ...typography.metricMedium,
-    color: colors.accentFrom,
+    color: colors.textPrimary,
   },
   metricLabel: {
     ...typography.sectionLabel,
@@ -491,6 +457,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 16,
     gap: 12,
   },
@@ -503,14 +470,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  chipGradient: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
   chipActive: {
     borderRadius: 20,
-    overflow: 'hidden',
+    backgroundColor: colors.accentFrom,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   chipActiveText: {
     color: colors.chipActiveText,
@@ -521,6 +485,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: colors.accentFrom,
+  },
+  btnDestructive: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: colors.destructiveFrom,
   },
   btnDisabled: {
     opacity: 0.4,
@@ -584,7 +555,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   modalActions: {
     flexDirection: 'row',
@@ -618,6 +589,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 14,
     gap: 12,
   },
@@ -647,10 +619,10 @@ const styles = StyleSheet.create({
   tonightCard: {
     flex: 1,
     height: 92,
-    backgroundColor: colors.background,
+    backgroundColor: colors.emeraldCard,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderColor: colors.emeraldBorder,
     padding: 10,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -662,25 +634,47 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 7,
-    backgroundColor: colors.accentFrom + '33',
+    backgroundColor: colors.emerald + '33',
     alignItems: 'center',
     justifyContent: 'center',
   },
   tonightAvatarText: {
     fontSize: 12,
     fontWeight: '800',
-    color: colors.accentFrom,
+    color: colors.emerald,
   },
   tonightCardName: {
     fontSize: 12,
-    color: colors.textPrimary,
+    color: colors.emeraldText,
     fontWeight: '600',
     alignSelf: 'stretch',
   },
   tonightCardDuration: {
     fontSize: 11,
-    color: colors.accentFrom,
+    color: colors.emerald,
     fontWeight: '700',
+  },
+  tonightCardOverflow: {
+    flex: 1,
+    height: 92,
+    backgroundColor: colors.emeraldCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.emerald,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  tonightOverflowCount: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.emerald,
+  },
+  tonightOverflowLabel: {
+    fontSize: 9,
+    color: colors.emeraldDim,
+    textAlign: 'center',
+    lineHeight: 13,
   },
   tonightEmptyText: {
     fontSize: 13,

@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   Alert,
@@ -163,14 +162,9 @@ export default function CategoriasScreen() {
                 activeOpacity={0.8}
                 style={styles.saveWrapper}
               >
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.saveBtn}
-                >
+                <View style={styles.saveBtn}>
                   <Text style={styles.saveBtnText}>Salvar</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -206,7 +200,7 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     width: '100%',
-    backgroundColor: '#12122a',
+    backgroundColor: colors.cardFrom,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
@@ -222,7 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   inputError: { borderColor: colors.destructiveFrom },
   errorText: { fontSize: 12, color: colors.destructiveFrom },
@@ -237,6 +231,11 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: { color: colors.textSecondary, fontWeight: '600' },
   saveWrapper: { flex: 1 },
-  saveBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtn: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: colors.accentFrom,
+  },
   saveBtnText: { color: colors.textPrimary, fontWeight: '800', fontSize: 14 },
 });

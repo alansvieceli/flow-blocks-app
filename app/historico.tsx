@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
@@ -97,12 +96,7 @@ function SessionCard({
   const teamRemoved = !team && !!session.teamId;
 
   return (
-    <LinearGradient
-      colors={[colors.cardFrom, colors.cardTo]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.sessionCard}
-    >
+    <View style={styles.sessionCard}>
       <View style={styles.sessionRow}>
         <Text style={styles.categoryName}>
           {getCategoryLabel(session.categoryId, categories)}
@@ -116,7 +110,7 @@ function SessionCard({
         {formatTime(session.startedAt)} → {formatTime(session.endedAt)}
       </Text>
       {session.note && <Text style={styles.note}>{session.note}</Text>}
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -148,14 +142,9 @@ export default function HistoricoScreen() {
             activeOpacity={0.8}
           >
             {filter === f.key ? (
-              <LinearGradient
-                colors={[colors.accentFrom, colors.accentTo]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.filterChipActive}
-              >
+              <View style={styles.filterChipActive}>
                 <Text style={styles.filterChipActiveText}>{f.label}</Text>
-              </LinearGradient>
+              </View>
             ) : (
               <View style={styles.filterChipInactive}>
                 <Text style={styles.filterChipInactiveText}>{f.label}</Text>
@@ -210,6 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    backgroundColor: colors.accentFrom,
   },
   filterChipActiveText: {
     color: colors.chipActiveText,
@@ -244,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.cardFrom,
     padding: 14,
     gap: 4,
   },

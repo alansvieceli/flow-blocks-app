@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     zIndex: 10,
-    backgroundColor: '#1a1228',
+    backgroundColor: colors.cardFrom,
     borderColor: colors.cardBorder,
     borderWidth: 1,
     borderRadius: 14,

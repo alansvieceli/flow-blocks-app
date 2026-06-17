@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   Alert,
@@ -18,7 +17,6 @@ import { ScreenHeader } from '../src/components/ScreenHeader';
 import { Card, EmptyState, FabButton } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
-import { typography } from '../src/theme/typography';
 import { Team } from '../src/types';
 
 export default function EquipesScreen() {
@@ -260,14 +258,9 @@ export default function EquipesScreen() {
                 activeOpacity={0.8}
                 style={styles.saveWrapper}
               >
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.saveBtn}
-                >
+                <View style={styles.saveBtn}>
                   <Text style={styles.saveBtnText}>Salvar</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -373,7 +366,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.textPrimary,
-    backgroundColor: '#0a0a14',
+    backgroundColor: colors.inputBackground,
   },
   errorText: {
     fontSize: 12,
@@ -388,6 +381,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: colors.accentFrom,
   },
   saveBtnText: {
     color: colors.textPrimary,
