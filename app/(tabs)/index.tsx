@@ -116,11 +116,14 @@ export default function HomeScreen() {
         plannedMinutes: e.plannedMinutes,
         done: false,
         status: 'pending',
+        fromTemplate: true,
       }),
     );
     const newPlan: PersonalDailyPlan = { date: todayStr, entries };
     setTodayPlan(newPlan);
-    void updatePersonalDailyPlans([...personalDailyPlans, newPlan]);
+    if (entries.length > 0) {
+      void updatePersonalDailyPlans([...personalDailyPlans, newPlan]);
+    }
   }, [isLoading, personalDailyPlans, personalWeeklyTemplate, updatePersonalDailyPlans]);
 
   const teamRequired = teams.length > 0;

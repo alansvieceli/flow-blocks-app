@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
@@ -106,10 +107,21 @@ function SessionCard({
         </Text>
       </View>
       <Text style={teamRemoved ? styles.teamRemoved : styles.teamName}>{teamName}</Text>
-      <Text style={styles.timeRange}>
-        {formatTime(session.startedAt)} → {formatTime(session.endedAt)}
-      </Text>
-      {session.note && <Text style={styles.note}>{session.note}</Text>}
+      <View style={styles.timeRange}>
+        <Text style={styles.timeRangeText}>{formatTime(session.startedAt)}</Text>
+        <Ionicons name="arrow-forward-outline" size={10} color={colors.textSecondary} />
+        <Text style={styles.timeRangeText}>{formatTime(session.endedAt)}</Text>
+      </View>
+      {session.note && (
+        <View style={styles.noteRow}>
+          <Ionicons
+            name="document-text-outline"
+            size={12}
+            color={colors.textSecondary}
+          />
+          <Text style={styles.note}>{session.note}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -247,6 +259,8 @@ const styles = StyleSheet.create({
   durationText: { fontSize: 14, color: colors.accentFrom, fontWeight: '700' },
   teamName: { fontSize: 13, color: colors.textSecondary },
   teamRemoved: { fontSize: 13, color: colors.textDisabled },
-  timeRange: { fontSize: 12, color: colors.textSecondary },
-  note: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic' },
+  timeRange: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  timeRangeText: { fontSize: 12, color: colors.textSecondary },
+  noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4 },
+  note: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic', flex: 1 },
 });

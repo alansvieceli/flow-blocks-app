@@ -1,10 +1,15 @@
-import { DEFAULT_CATEGORIES, getCategoryLabel, isFocusCategory } from './categories';
+import {
+  DEFAULT_CATEGORIES,
+  getCategoryLabel,
+  isFocusCategory,
+  isLockedCategory,
+} from './categories';
 
 describe('DEFAULT_CATEGORIES', () => {
-  it('has the installation defaults', () => {
+  it('has the installation defaults with Foco first', () => {
     expect(DEFAULT_CATEGORIES).toEqual([
-      { id: 'reuniao', label: 'Reunião', order: 1 },
-      { id: 'foco', label: 'Foco', order: 2 },
+      { id: 'foco', label: 'Foco', order: 1 },
+      { id: 'reuniao', label: 'Reunião', order: 2 },
     ]);
   });
 
@@ -33,5 +38,13 @@ describe('isFocusCategory', () => {
     expect(isFocusCategory('foco')).toBe(true);
     expect(isFocusCategory('foco_profundo')).toBe(true);
     expect(isFocusCategory('reuniao')).toBe(false);
+  });
+});
+
+describe('isLockedCategory', () => {
+  it('returns true only for the locked foco id', () => {
+    expect(isLockedCategory('foco')).toBe(true);
+    expect(isLockedCategory('reuniao')).toBe(false);
+    expect(isLockedCategory('custom')).toBe(false);
   });
 });

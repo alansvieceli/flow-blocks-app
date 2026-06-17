@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
 import { toLocalDateString } from '../../src/lib/localDate';
@@ -22,6 +23,21 @@ import { Category, Session, Team } from '../../src/types';
 
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const HOUR_LABELS = [0, 6, 12, 18];
+
+function SectionTitle({
+  icon,
+  label,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+}) {
+  return (
+    <View style={styles.sectionTitleRow}>
+      <Ionicons name={icon} size={12} color={colors.textSecondary} />
+      <Text style={styles.sectionLabel}>{label}</Text>
+    </View>
+  );
+}
 
 function formatMinutes(m: number): string {
   const h = Math.floor(m / 60);
@@ -74,12 +90,15 @@ function WeeklySection({
 
   return (
     <>
-      <Text style={styles.sectionLabel}>ESTA SEMANA</Text>
+      <SectionTitle icon="calendar-outline" label="ESTA SEMANA" />
 
       {/* Category card */}
       <View style={styles.card}>
         <View style={styles.metricRow}>
-          <Text style={styles.metricLabel}>Foco Profundo</Text>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Foco Profundo</Text>
+          </View>
           <MetricBar
             value={categoryMetrics.deepWorkMinutes}
             total={total}
@@ -90,7 +109,10 @@ function WeeklySection({
           </Text>
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
-          <Text style={styles.metricLabel}>Interrupções</Text>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="shuffle-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Interrupções</Text>
+          </View>
           <MetricBar
             value={categoryMetrics.interruptionMinutes}
             total={total}
@@ -110,10 +132,16 @@ function WeeklySection({
           teamMetrics.map((tm) => (
             <View key={tm.teamId} style={[styles.metricRow, styles.metricRowBottom]}>
               <View style={styles.teamLabelRow}>
-                <Text style={styles.metricLabel} numberOfLines={1}>
+                <Text style={styles.teamLabel} numberOfLines={1}>
                   {tm.teamName}
                 </Text>
-                {alertIds.has(tm.teamId) && <Text style={styles.alertIcon}> ⚠️</Text>}
+                {alertIds.has(tm.teamId) && (
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={13}
+                    color={colors.alert}
+                  />
+                )}
               </View>
               <MetricBar value={tm.minutes} total={total} accent="primary" />
               <Text style={styles.metricValue}>
@@ -162,7 +190,7 @@ function HeatmapSection({
 
   return (
     <>
-      <Text style={styles.sectionLabel}>MAPA DE CALOR</Text>
+      <SectionTitle icon="grid-outline" label="MAPA DE CALOR" />
 
       {/* Team filter chips */}
       <ScrollView
@@ -290,7 +318,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
   return (
     <>
       {/* Streak */}
-      <Text style={styles.sectionLabel}>SEQUÊNCIA</Text>
+      <SectionTitle icon="flame-outline" label="SEQUÊNCIA" />
       <View style={styles.card}>
         <View style={styles.streakRow}>
           <Text style={styles.streakNumber}>{streak}</Text>
@@ -304,7 +332,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
       </View>
 
       {/* Context switches */}
-      <Text style={styles.sectionLabel}>TROCAS DE CONTEXTO</Text>
+      <SectionTitle icon="swap-horizontal-outline" label="TROCAS DE CONTEXTO" />
       <View style={styles.card}>
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>Hoje</Text>
@@ -321,13 +349,16 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
       {/* Team balance alerts */}
       {alerts.length > 0 && (
         <>
-          <Text style={styles.sectionLabel}>ALERTAS DE EQUIPE</Text>
+          <SectionTitle icon="alert-circle-outline" label="ALERTAS DE EQUIPE" />
           {alerts.map((alert) => (
             <View key={alert.teamId} style={styles.alertCard}>
-              <Text style={styles.alertText}>
-                ⚠️ {alert.teamName}: {alert.actualPercent}% (meta:{' '}
-                {alert.maxWeeklyPercent}%)
-              </Text>
+              <View style={styles.alertTextRow}>
+                <Ionicons name="alert-circle-outline" size={14} color={colors.alert} />
+                <Text style={styles.alertText}>
+                  {alert.teamName}: {alert.actualPercent}% (meta:{' '}
+                  {alert.maxWeeklyPercent}%)
+                </Text>
+              </View>
             </View>
           ))}
         </>
@@ -336,7 +367,7 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
       {/* Daily summary */}
       {dailyMetrics.totalMinutes > 0 && (
         <>
-          <Text style={styles.sectionLabel}>HOJE</Text>
+          <SectionTitle icon="today-outline" label="HOJE" />
           <View style={styles.card}>
             <Text style={styles.dailyTotal}>
               {formatMinutes(dailyMetrics.totalMinutes)}
@@ -370,7 +401,7 @@ function PersonalChartSection() {
 
   return (
     <>
-      <Text style={styles.sectionLabel}>ATIVIDADES PESSOAIS</Text>
+      <SectionTitle icon="leaf-outline" label="ATIVIDADES PESSOAIS" />
       <View style={styles.card}>
         <View style={styles.chipsRowWrap}>
           {(['currentWeek', 'last4Weeks'] as const).map((p) => (
@@ -456,10 +487,15 @@ export default function PainelScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, gap: 12, paddingBottom: 40 },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
   sectionLabel: {
     ...typography.sectionLabel,
     color: colors.textSecondary,
-    marginTop: 4,
   },
   card: {
     borderRadius: 18,
@@ -472,10 +508,16 @@ const styles = StyleSheet.create({
   metricRowSpaced: { marginTop: 10 },
   metricRowBottom: { marginBottom: 8 },
   teamLabelRow: { flexDirection: 'row', alignItems: 'center', width: 80 },
+  teamLabel: { flex: 1, fontSize: 12, color: colors.textSecondary },
+  metricLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    width: 80,
+  },
   metricLabel: {
     fontSize: 12,
     color: colors.textSecondary,
-    width: 80,
   },
   metricValue: {
     fontSize: 11,
@@ -491,7 +533,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   barFill: { height: 6, borderRadius: 3 },
-  alertIcon: { fontSize: 12 },
+  alertTextRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   emptyText: { ...typography.body, color: colors.textSecondary },
   chipsScroll: { marginVertical: 4 },
   chipsRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { Card, EmptyState, FabButton } from '../src/components/common';
+import { isLockedCategory } from '../src/lib/categories';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -54,6 +55,10 @@ export default function CategoriasScreen() {
       setInputError('A ordem deve ser um número maior que zero.');
       return;
     }
+    if (order === 1 && editingId !== 'foco') {
+      setInputError('A ordem 1 é reservada para a categoria Foco.');
+      return;
+    }
 
     const updated = editingId
       ? categories.map((c) => (c.id === editingId ? { ...c, label, order } : c))
@@ -64,6 +69,7 @@ export default function CategoriasScreen() {
   }
 
   async function handleDelete(id: string) {
+    if (isLockedCategory(id)) return;
     Alert.alert('Excluir categoria', 'Deseja remover esta categoria?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -92,25 +98,41 @@ export default function CategoriasScreen() {
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <Card style={styles.row}>
+              <Ionicons
+                name={isLockedCategory(item.id) ? 'flash-outline' : 'albums-outline'}
+                size={18}
+                color={
+                  isLockedCategory(item.id) ? colors.accentFrom : colors.textSecondary
+                }
+              />
               <Text style={styles.rowName} numberOfLines={1}>
                 {item.label}
               </Text>
               <Text style={styles.rowOrder}>#{item.order}</Text>
-              <View style={styles.rowActions}>
-                <TouchableOpacity onPress={() => openEdit(item)} style={styles.iconBtn}>
-                  <Ionicons name="pencil-outline" size={18} color={colors.accentFrom} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDelete(item.id)}
-                  style={styles.iconBtn}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={18}
-                    color={colors.destructiveFrom}
-                  />
-                </TouchableOpacity>
-              </View>
+              {!isLockedCategory(item.id) && (
+                <View style={styles.rowActions}>
+                  <TouchableOpacity
+                    onPress={() => openEdit(item)}
+                    style={styles.iconBtn}
+                  >
+                    <Ionicons
+                      name="pencil-outline"
+                      size={18}
+                      color={colors.accentFrom}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDelete(item.id)}
+                    style={styles.iconBtn}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={colors.destructiveFrom}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
             </Card>
           )}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}

@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import { FabButton } from '../src/components/common';
+import { FabButton, OptionPicker } from '../src/components/common';
 import { toLocalDateString } from '../src/lib/localDate';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
@@ -50,6 +50,7 @@ function buildFromTemplate(
     plannedMinutes: e.plannedMinutes,
     done: false,
     status: 'pending',
+    fromTemplate: true,
   }));
   return { date, entries };
 }
@@ -76,8 +77,15 @@ export default function PlanoDiaScreen() {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const jsDay = new Date(year, month - 1, day, 12).getDay();
+
     const existing = personalDailyPlans.find((p) => p.date === dateStr);
-    if (existing) {
+    const templateHasEntries = personalWeeklyTemplate.some(
+      (d) => d.dayOfWeek === jsDay && d.entries.length > 0,
+    );
+
+    if (existing && (existing.entries.length > 0 || !templateHasEntries)) {
       setPlan(existing);
       const stateMap = new Map<string, DoneState>();
       for (const e of existing.entries) {
@@ -87,15 +95,19 @@ export default function PlanoDiaScreen() {
       return;
     }
 
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const jsDay = new Date(year, month - 1, day, 12).getDay();
     const newPlan = buildFromTemplate(personalWeeklyTemplate, jsDay, dateStr);
     setPlan(newPlan);
     if (newPlan.entries.length > 0) setPreFilled(true);
     const stateMap = new Map<string, DoneState>();
     for (const e of newPlan.entries) stateMap.set(e.id, 'pending');
     setEntryStates(stateMap);
-    void updatePersonalDailyPlans([...personalDailyPlans, newPlan]);
+    if (newPlan.entries.length > 0) {
+      void updatePersonalDailyPlans(
+        existing
+          ? personalDailyPlans.map((p) => (p.date === dateStr ? newPlan : p))
+          : [...personalDailyPlans, newPlan],
+      );
+    }
   }, [dateStr, personalDailyPlans, personalWeeklyTemplate, updatePersonalDailyPlans]);
 
   async function savePlan(updatedPlan: PersonalDailyPlan) {
@@ -145,18 +157,29 @@ export default function PlanoDiaScreen() {
       setFormError('Duração inválida.');
       return;
     }
-    const newEntry: PersonalDailyPlanEntry = {
-      id: `${dateStr}-${selectedActivityId}-${Date.now()}`,
-      activityId: selectedActivityId,
-      plannedMinutes: mins,
-      done: false,
-      status: 'pending',
-    };
-    const updatedPlan = { ...plan, entries: [...plan.entries, newEntry] };
+
+    const existing = plan.entries.find((e) => e.activityId === selectedActivityId);
     const newStates = new Map(entryStates);
-    newStates.set(newEntry.id, 'pending');
+    let updatedEntries: PersonalDailyPlanEntry[];
+
+    if (existing) {
+      updatedEntries = plan.entries.map((e) =>
+        e.id === existing.id ? { ...e, plannedMinutes: e.plannedMinutes + mins } : e,
+      );
+    } else {
+      const newEntry: PersonalDailyPlanEntry = {
+        id: `${dateStr}-${selectedActivityId}-${Date.now()}`,
+        activityId: selectedActivityId,
+        plannedMinutes: mins,
+        done: false,
+        status: 'pending',
+      };
+      updatedEntries = [...plan.entries, newEntry];
+      newStates.set(newEntry.id, 'pending');
+    }
+
     setEntryStates(newStates);
-    await savePlan(updatedPlan);
+    await savePlan({ ...plan, entries: updatedEntries });
     setAddModalVisible(false);
   }
 
@@ -174,17 +197,19 @@ export default function PlanoDiaScreen() {
   ).length;
   const pendingCount = plan.entries.length - doneCount - notDoneCount;
 
-  const displayDate = (() => {
-    const isToday = dateStr === toLocalDateString(today);
-    if (isToday) return '🌙 Esta noite';
-    const [y, m, d] = dateStr.split('-');
-    return `${d}/${m}/${y}`;
-  })();
+  const isToday = dateStr === toLocalDateString(today);
+  const displayDate = isToday
+    ? 'Esta noite'
+    : (() => {
+        const [y, m, d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
+      })();
 
   return (
     <View style={styles.container}>
       <ScreenHeader
         title={displayDate}
+        titleIcon={isToday ? 'moon-outline' : undefined}
         subtitle={preFilled ? 'Pré-preenchido do template' : undefined}
         backTo="/(tabs)/"
       />
@@ -248,16 +273,18 @@ export default function PlanoDiaScreen() {
                   </Text>
                   <Text style={styles.entryDuration}>{entry.plannedMinutes} min</Text>
                 </View>
-                <TouchableOpacity
-                  onPress={() => removeEntry(entry.id)}
-                  style={styles.iconBtn}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={16}
-                    color={colors.destructiveFrom}
-                  />
-                </TouchableOpacity>
+                {!entry.fromTemplate && (
+                  <TouchableOpacity
+                    onPress={() => removeEntry(entry.id)}
+                    style={styles.iconBtn}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={16}
+                      color={colors.destructiveFrom}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })
@@ -266,9 +293,30 @@ export default function PlanoDiaScreen() {
 
       {plan.entries.length > 0 && (
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {doneCount} feito · {notDoneCount} não rolou · {pendingCount} pendentes
-          </Text>
+          <View style={styles.footerCounts}>
+            <View style={styles.footerItem}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={14}
+                color={colors.success}
+              />
+              <Text style={styles.footerText}>{doneCount} feito</Text>
+            </View>
+            <Text style={styles.footerSep}>·</Text>
+            <View style={styles.footerItem}>
+              <Ionicons
+                name="close-circle-outline"
+                size={14}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.footerText}>{notDoneCount} não rolou</Text>
+            </View>
+            <Text style={styles.footerSep}>·</Text>
+            <View style={styles.footerItem}>
+              <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+              <Text style={styles.footerText}>{pendingCount} pendentes</Text>
+            </View>
+          </View>
         </View>
       )}
 
@@ -278,38 +326,22 @@ export default function PlanoDiaScreen() {
       <Modal visible={addModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>+ Adicionar atividade</Text>
+            <View style={styles.modalTitleRow}>
+              <Ionicons name="add-circle-outline" size={18} color={colors.accentFrom} />
+              <Text style={styles.modalTitle}>Adicionar atividade</Text>
+            </View>
 
-            <Text style={styles.formLabel}>Atividade</Text>
-            <ScrollView style={styles.activityPicker} nestedScrollEnabled>
-              {activities.length === 0 ? (
-                <Text style={styles.emptyText}>Nenhuma atividade disponível.</Text>
-              ) : (
-                activities.map((a) => (
-                  <TouchableOpacity
-                    key={a.id}
-                    onPress={() => {
-                      setSelectedActivityId(a.id);
-                      setFormError('');
-                    }}
-                    style={[
-                      styles.activityOption,
-                      selectedActivityId === a.id && styles.activityOptionSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.activityOptionText,
-                        selectedActivityId === a.id &&
-                          styles.activityOptionTextSelected,
-                      ]}
-                    >
-                      {a.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
+            <OptionPicker
+              label="Atividade"
+              items={activities.map((a) => ({ id: a.id, label: a.name }))}
+              onSelect={(id) => {
+                setSelectedActivityId(id);
+                setFormError('');
+              }}
+              placeholder="Selecionar atividade"
+              selectedId={selectedActivityId}
+              emptyMessage="Nenhuma atividade disponível."
+            />
 
             <Text style={styles.formLabel}>Duração (minutos)</Text>
             <TextInput
@@ -389,23 +421,12 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
+  footerCounts: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  footerItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   footerText: { ...typography.sectionLabel, color: colors.textSecondary },
+  footerSep: { ...typography.sectionLabel, color: colors.textSecondary },
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   formLabel: { fontSize: 12, color: colors.textSecondary },
-  activityPicker: {
-    maxHeight: 120,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  activityOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.cardBorder,
-  },
-  activityOptionSelected: { backgroundColor: colors.accentFrom + '33' },
-  activityOptionText: { fontSize: 13, color: colors.textSecondary },
-  activityOptionTextSelected: { color: colors.textPrimary, fontWeight: '700' },
   input: {
     borderWidth: 1,
     borderColor: colors.cardBorder,

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
@@ -9,6 +9,7 @@ import { typography } from '../theme/typography';
 
 interface ScreenHeaderProps {
   title: string;
+  titleIcon?: React.ComponentProps<typeof Ionicons>['name'];
   subtitle?: string;
   backTo?: Href;
   backLabel?: string;
@@ -18,6 +19,7 @@ interface ScreenHeaderProps {
 
 export function ScreenHeader({
   title,
+  titleIcon,
   subtitle,
   backTo,
   backLabel = 'Voltar',
@@ -65,7 +67,12 @@ export function ScreenHeader({
       </View>
 
       <View style={styles.titleBlock}>
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.titleRow}>
+          {titleIcon && (
+            <Ionicons name={titleIcon} size={18} color={colors.textPrimary} />
+          )}
+          <Text style={styles.title}>{title}</Text>
+        </View>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
     </View>
@@ -111,6 +118,11 @@ const styles = StyleSheet.create({
   },
   titleBlock: {
     gap: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     ...typography.screenTitle,

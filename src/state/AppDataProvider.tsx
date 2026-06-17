@@ -72,7 +72,31 @@ interface AppDataContextValue extends AppDataState {
   updateTeams: (teams: Team[]) => Promise<void>;
 }
 
-const DEFAULT_SETTINGS: AppSettings = { notificationsEnabled: true };
+const DEFAULT_SETTINGS: AppSettings = { notificationsEnabled: true, historyMonths: 4 };
+
+function cutoffDate(months: number): Date {
+  const d = new Date();
+  d.setMonth(d.getMonth() - months);
+  return d;
+}
+
+function pruneSessionsByRetention(sessions: Session[], months: number): Session[] {
+  const cutoff = cutoffDate(months);
+  return sessions.filter((s) => new Date(s.startedAt) >= cutoff);
+}
+
+function prunePlansByRetention(
+  plans: PersonalDailyPlan[],
+  months: number,
+): PersonalDailyPlan[] {
+  const cutoffStr = cutoffDate(months).toISOString().slice(0, 10);
+  return plans.filter((p) => p.date >= cutoffStr);
+}
+
+function pruneRemindersByRetention(reminders: Reminder[], months: number): Reminder[] {
+  const cutoff = cutoffDate(months);
+  return reminders.filter((r) => new Date(r.datetime) >= cutoff);
+}
 
 const ALL_STORAGE_KEYS = [
   'teams',
@@ -112,14 +136,27 @@ async function loadAppData(): Promise<
     getPersonalDailyPlans(),
   ]);
 
+  const months = settings.historyMonths;
+  const prunedSessions = pruneSessionsByRetention(sessions, months);
+  const prunedPlans = prunePlansByRetention(personalDailyPlans, months);
+  const prunedReminders = pruneRemindersByRetention(reminders, months);
+
+  const saves: Promise<void>[] = [];
+  if (prunedSessions.length < sessions.length) saves.push(saveSessions(prunedSessions));
+  if (prunedPlans.length < personalDailyPlans.length)
+    saves.push(savePersonalDailyPlans(prunedPlans));
+  if (prunedReminders.length < reminders.length)
+    saves.push(saveReminders(prunedReminders));
+  if (saves.length > 0) await Promise.all(saves);
+
   return {
     activeSession,
     categories,
     personalActivities,
-    personalDailyPlans,
+    personalDailyPlans: prunedPlans,
     personalWeeklyTemplate,
-    reminders,
-    sessions,
+    reminders: prunedReminders,
+    sessions: prunedSessions,
     settings,
     teams,
   };
@@ -202,24 +239,48 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         await savePersonalActivities(personalActivities);
       },
       updatePersonalDailyPlans: async (personalDailyPlans) => {
-        setState((current) => ({ ...current, personalDailyPlans }));
-        await savePersonalDailyPlans(personalDailyPlans);
+        const pruned = prunePlansByRetention(
+          personalDailyPlans,
+          state.settings.historyMonths,
+        );
+        setState((current) => ({ ...current, personalDailyPlans: pruned }));
+        await savePersonalDailyPlans(pruned);
       },
       updatePersonalWeeklyTemplate: async (personalWeeklyTemplate) => {
         setState((current) => ({ ...current, personalWeeklyTemplate }));
         await savePersonalWeeklyTemplate(personalWeeklyTemplate);
       },
       updateReminders: async (reminders) => {
-        setState((current) => ({ ...current, reminders }));
-        await saveReminders(reminders);
+        const pruned = pruneRemindersByRetention(
+          reminders,
+          state.settings.historyMonths,
+        );
+        setState((current) => ({ ...current, reminders: pruned }));
+        await saveReminders(pruned);
       },
       updateSessions: async (sessions) => {
-        setState((current) => ({ ...current, sessions }));
-        await saveSessions(sessions);
+        const pruned = pruneSessionsByRetention(sessions, state.settings.historyMonths);
+        setState((current) => ({ ...current, sessions: pruned }));
+        await saveSessions(pruned);
       },
       updateSettings: async (settings) => {
-        setState((current) => ({ ...current, settings }));
-        await saveSettings(settings);
+        const months = settings.historyMonths;
+        const prunedSessions = pruneSessionsByRetention(state.sessions, months);
+        const prunedPlans = prunePlansByRetention(state.personalDailyPlans, months);
+        const prunedReminders = pruneRemindersByRetention(state.reminders, months);
+        setState((current) => ({
+          ...current,
+          settings,
+          sessions: prunedSessions,
+          personalDailyPlans: prunedPlans,
+          reminders: prunedReminders,
+        }));
+        await Promise.all([
+          saveSettings(settings),
+          saveSessions(prunedSessions),
+          savePersonalDailyPlans(prunedPlans),
+          saveReminders(prunedReminders),
+        ]);
       },
       updateTeams: async (teams) => {
         const sorted = sortByOrder(teams);

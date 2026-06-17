@@ -132,27 +132,52 @@ export default function LembretesScreen() {
       ) : (
         <FlatList
           data={[
+            ...(upcoming.length > 0
+              ? [
+                  {
+                    id: '__upcoming__',
+                    _section: 'section-label' as const,
+                    label: 'PRÓXIMOS',
+                  },
+                ]
+              : []),
             ...upcoming.map((r) => ({ ...r, _section: 'upcoming' as const })),
+            ...(past.length > 0
+              ? [
+                  {
+                    id: '__past__',
+                    _section: 'section-label' as const,
+                    label: 'PASSADOS',
+                  },
+                ]
+              : []),
             ...past.map((r) => ({ ...r, _section: 'past' as const })),
           ]}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={item._section === 'past' ? styles.pastItem : undefined}>
-              <ReminderRow
-                reminder={item}
-                categories={categories}
-                teams={teams}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-              />
-            </View>
-          )}
-          ListHeaderComponent={() => (
-            <>
-              {upcoming.length > 0 && <Text style={styles.sectionLabel}>PRÓXIMOS</Text>}
-            </>
-          )}
+          renderItem={({ item }) => {
+            if (item._section === 'section-label') {
+              return (
+                <Text style={styles.sectionLabel}>
+                  {(item as { label: string }).label}
+                </Text>
+              );
+            }
+            const reminder = item as (typeof upcoming)[0] & {
+              _section: 'upcoming' | 'past';
+            };
+            return (
+              <View style={reminder._section === 'past' ? styles.pastItem : undefined}>
+                <ReminderRow
+                  reminder={reminder}
+                  categories={categories}
+                  teams={teams}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                />
+              </View>
+            );
+          }}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
         />
       )}
@@ -214,7 +239,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  badgeText: { fontSize: 11, color: colors.chipInactiveText },
+  badgeText: { fontSize: 11, color: colors.chipInactiveText, fontWeight: '600' },
   deleteBtn: { padding: 4 },
   modalOverlay: {
     flex: 1,

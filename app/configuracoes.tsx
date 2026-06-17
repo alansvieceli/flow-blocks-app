@@ -8,14 +8,16 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
+import { OptionPicker, SectionHeader } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { AppSettings } from '../src/storage/settingsStorage';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
 
-function SectionHeader({ title }: { title: string }) {
-  return <Text style={styles.sectionHeader}>{title}</Text>;
-}
+const HISTORY_MONTHS_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  id: String(i + 1),
+  label: i === 0 ? '1 mês' : `${i + 1} meses`,
+}));
 
 function ToggleRow({
   label,
@@ -77,7 +79,7 @@ export default function ConfiguracoesScreen() {
     <View style={styles.container}>
       <ScreenHeader title="Configurações" backTo="/(tabs)/mais" />
       <ScrollView contentContainerStyle={styles.content}>
-        <SectionHeader title="NOTIFICAÇÕES" />
+        <SectionHeader title="NOTIFICAÇÕES" style={styles.sectionHeader} />
         <View style={styles.section}>
           <ToggleRow
             label="Ativar notificações"
@@ -87,8 +89,15 @@ export default function ConfiguracoesScreen() {
           />
         </View>
 
-        <SectionHeader title="DADOS" />
-        <View style={styles.section}>
+        <SectionHeader title="DADOS" style={styles.sectionHeader} />
+        <OptionPicker
+          label="Manter histórico de"
+          items={HISTORY_MONTHS_OPTIONS}
+          onSelect={(id) => update({ historyMonths: Number(id) })}
+          placeholder="Selecionar período"
+          selectedId={String(settings.historyMonths)}
+        />
+        <View style={[styles.section, styles.sectionSpaced]}>
           <Pressable
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
             onPress={confirmReset}
@@ -110,11 +119,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, paddingTop: 12, gap: 4 },
   sectionHeader: {
-    ...typography.sectionLabel,
-    color: colors.textSecondary,
     marginTop: 16,
     marginBottom: 6,
-    marginLeft: 4,
   },
   section: {
     backgroundColor: colors.cardFrom,
@@ -123,6 +129,7 @@ const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
     overflow: 'hidden',
   },
+  sectionSpaced: { marginTop: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

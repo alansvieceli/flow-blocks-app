@@ -1,9 +1,15 @@
 import { Category, CategoryId } from '../types';
 
+export const LOCKED_CATEGORY: Category = { id: 'foco', label: 'Foco', order: 1 };
+
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'reuniao', label: 'Reunião', order: 1 },
-  { id: 'foco', label: 'Foco', order: 2 },
+  LOCKED_CATEGORY,
+  { id: 'reuniao', label: 'Reunião', order: 2 },
 ];
+
+export function isLockedCategory(id: CategoryId): boolean {
+  return id === LOCKED_CATEGORY.id;
+}
 
 const LEGACY_CATEGORY_LABELS: Record<string, string> = {
   admin: 'Admin',

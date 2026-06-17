@@ -86,6 +86,7 @@ export default function AtividadesScreen() {
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <Card style={styles.row}>
+              <Ionicons name="sparkles-outline" size={18} color={colors.accentFrom} />
               <Text style={styles.rowName} numberOfLines={1}>
                 {item.name}
               </Text>

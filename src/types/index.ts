@@ -58,6 +58,7 @@ export interface PersonalDailyPlanEntry {
   plannedMinutes: number;
   status?: PersonalDailyPlanEntryStatus;
   done: boolean;
+  fromTemplate?: boolean;
 }
 
 export interface PersonalDailyPlan {
