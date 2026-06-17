@@ -1,6 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -33,22 +31,11 @@ interface Props {
 
 export function AppHeader({ greeting, title }: Props) {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) + 4 }]}>
       <View style={styles.topRow}>
         <FlowBlocksLogo />
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Configurações"
-          activeOpacity={0.75}
-          hitSlop={8}
-          onPress={() => router.push('/configuracoes')}
-          style={styles.gear}
-        >
-          <Ionicons name="settings-outline" size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
       </View>
 
       {greeting ? (
@@ -74,14 +61,6 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  gear: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   bottom: {
     marginTop: 12,

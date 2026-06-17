@@ -31,12 +31,13 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 
 ## Core Data Concepts
 
-- `teams`: user-managed list of teams/projects (id, name, optional max weekly % target).
+- `teams`: user-managed list of teams/projects (id, name, numeric order, optional max weekly % target).
+- `categories`: user-managed list of work block categories (id, label, numeric order). New installs start with `Reunião` and `Foco`.
 - `sessions`: recorded work blocks (category, team, timestamps, actual duration, optional note).
 - `active_session`: one currently running work session, mirrored into a persistent banner above the tab bar.
 - `settings`: app settings, including whether reminder notifications are enabled.
 - `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
-- `personalActivities`: user-defined leisure activities (id, name).
+- `personalActivities`: user-defined leisure activities (id, name). New installs start with `Video Game` and `Estudo`.
 - `personalWeeklyTemplate`: recurring plan per weekday (activity + planned duration).
 - `personalDailyPlan`: per-local-date plan entries generated from the template, with `pending`, `done`, or `not-done` status.
 
@@ -49,7 +50,11 @@ Common tab data is loaded through a shared React provider (`AppDataProvider`) so
 - **Início**: compact daily metrics, new work block, active session card, and tonight plan shortcut.
 - **Painel**: weekly metrics, heatmap, streak, context switches, team-balance alerts, and personal chart.
 - **Lembretes**: reminder list and creation/editing flow.
-- **Mais**: Trabalho (Equipes, Histórico), Pessoal (Atividades, Template semanal), and App (Configurações).
+- **Mais**: Trabalho (Equipes, Categorias, Histórico), Pessoal (Atividades, Template semanal), and App (Configurações).
+
+## Branding
+
+Flow Blocks uses a cascading-blocks logo built from the app accent gradient. The same identity appears in the app header, white-background installed app icons, Android adaptive icon, favicon, and centered dark splash screen logo.
 
 ## Current Workflow
 

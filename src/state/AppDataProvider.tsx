@@ -13,6 +13,7 @@ import {
   setActiveSession as persistActiveSession,
   subscribeActiveSession,
 } from '../storage/activeSessionStorage';
+import { getCategories, saveCategories } from '../storage/categoriesStorage';
 import {
   getPersonalActivities,
   getPersonalDailyPlans,
@@ -27,6 +28,7 @@ import { AppSettings, getSettings, saveSettings } from '../storage/settingsStora
 import { getTeams, saveTeams } from '../storage/teamsStorage';
 import {
   ActiveSession,
+  Category,
   PersonalActivity,
   PersonalDailyPlan,
   PersonalWeeklyTemplateDay,
@@ -34,9 +36,11 @@ import {
   Session,
   Team,
 } from '../types';
+import { sortByOrder } from '../lib/sortByOrder';
 
 interface AppDataState {
   activeSession: ActiveSession | null;
+  categories: Category[];
   error: string | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -53,6 +57,7 @@ interface AppDataContextValue extends AppDataState {
   clearActiveSession: () => Promise<void>;
   refreshAll: () => Promise<void>;
   setActiveSession: (session: ActiveSession) => Promise<void>;
+  updateCategories: (categories: Category[]) => Promise<void>;
   updatePersonalActivities: (activities: PersonalActivity[]) => Promise<void>;
   updatePersonalDailyPlans: (plans: PersonalDailyPlan[]) => Promise<void>;
   updatePersonalWeeklyTemplate: (
@@ -75,6 +80,7 @@ async function loadAppData(): Promise<
     teams,
     sessions,
     activeSession,
+    categories,
     reminders,
     settings,
     personalActivities,
@@ -84,6 +90,7 @@ async function loadAppData(): Promise<
     getTeams(),
     getSessions(),
     getActiveSession(),
+    getCategories(),
     getReminders(),
     getSettings(),
     getPersonalActivities(),
@@ -93,6 +100,7 @@ async function loadAppData(): Promise<
 
   return {
     activeSession,
+    categories,
     personalActivities,
     personalDailyPlans,
     personalWeeklyTemplate,
@@ -106,6 +114,7 @@ async function loadAppData(): Promise<
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppDataState>({
     activeSession: null,
+    categories: [],
     error: null,
     isLoading: true,
     isRefreshing: false,
@@ -163,6 +172,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setState((current) => ({ ...current, activeSession }));
         await persistActiveSession(activeSession);
       },
+      updateCategories: async (categories) => {
+        const sorted = sortByOrder(categories);
+        setState((current) => ({ ...current, categories: sorted }));
+        await saveCategories(sorted);
+      },
       updatePersonalActivities: async (personalActivities) => {
         setState((current) => ({ ...current, personalActivities }));
         await savePersonalActivities(personalActivities);
@@ -188,8 +202,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         await saveSettings(settings);
       },
       updateTeams: async (teams) => {
-        setState((current) => ({ ...current, teams }));
-        await saveTeams(teams);
+        const sorted = sortByOrder(teams);
+        setState((current) => ({ ...current, teams: sorted }));
+        await saveTeams(sorted);
       },
     }),
     [refreshAll, state],

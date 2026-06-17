@@ -18,6 +18,12 @@ export default function MaisScreen() {
           onPress={() => router.push('/equipes')}
         />
         <ListRow
+          icon="albums-outline"
+          title="Categorias"
+          subtitle="Tipos de blocos de trabalho"
+          onPress={() => router.push('/categorias')}
+        />
+        <ListRow
           icon="time-outline"
           title="Histórico"
           subtitle="Sessões registradas"

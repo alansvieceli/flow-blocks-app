@@ -2,7 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
-import { CATEGORIES } from '../../src/lib/categories';
 import { toLocalDateString } from '../../src/lib/localDate';
 import {
   CategoryMetrics,
@@ -20,7 +19,7 @@ import { getPersonalDoneMinutesByActivity } from '../../src/lib/personalMetrics'
 import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
-import { Session, Team } from '../../src/types';
+import { Category, Session, Team } from '../../src/types';
 
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const HOUR_LABELS = [0, 6, 12, 18];
@@ -139,7 +138,15 @@ function WeeklySection({
   );
 }
 
-function HeatmapSection({ sessions, teams }: { sessions: Session[]; teams: Team[] }) {
+function HeatmapSection({
+  categories,
+  sessions,
+  teams,
+}: {
+  categories: Category[];
+  sessions: Session[];
+  teams: Team[];
+}) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
@@ -242,7 +249,7 @@ function HeatmapSection({ sessions, teams }: { sessions: Session[]; teams: Team[
               </View>
             )}
           </TouchableOpacity>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <TouchableOpacity
               key={c.id}
               onPress={() =>
@@ -475,7 +482,7 @@ function PersonalChartSection() {
 }
 
 export default function PainelScreen() {
-  const { sessions, teams } = useAppData();
+  const { categories, sessions, teams } = useAppData();
 
   const today = new Date();
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
@@ -492,7 +499,7 @@ export default function PainelScreen() {
           alerts={alerts}
         />
 
-        <HeatmapSection sessions={sessions} teams={teams} />
+        <HeatmapSection categories={categories} sessions={sessions} teams={teams} />
 
         <ExtrasSection sessions={sessions} teams={teams} />
 

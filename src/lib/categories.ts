@@ -1,17 +1,24 @@
-import { CategoryId } from '../types';
+import { Category, CategoryId } from '../types';
 
-export interface Category {
-  id: CategoryId;
-  label: string;
-}
-
-export const CATEGORIES: Category[] = [
-  { id: 'foco_profundo', label: 'Foco profundo' },
-  { id: 'reunioes', label: 'Reuniões' },
-  { id: 'revisao_codigo', label: 'Revisão de código' },
-  { id: 'admin', label: 'Admin' },
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'reuniao', label: 'Reunião', order: 1 },
+  { id: 'foco', label: 'Foco', order: 2 },
 ];
 
-export function getCategoryLabel(id: CategoryId): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? id;
+const LEGACY_CATEGORY_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  foco_profundo: 'Foco profundo',
+  reunioes: 'Reuniões',
+  revisao_codigo: 'Revisão de código',
+};
+
+export function getCategoryLabel(
+  id: CategoryId,
+  categories: Category[] = DEFAULT_CATEGORIES,
+): string {
+  return categories.find((c) => c.id === id)?.label ?? LEGACY_CATEGORY_LABELS[id] ?? id;
+}
+
+export function isFocusCategory(id: CategoryId): boolean {
+  return id === 'foco' || id === 'foco_profundo';
 }

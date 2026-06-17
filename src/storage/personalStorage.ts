@@ -5,6 +5,11 @@ import {
   PersonalWeeklyTemplateDay,
 } from '../types';
 
+export const DEFAULT_PERSONAL_ACTIVITIES: PersonalActivity[] = [
+  { id: 'video_game', name: 'Video Game' },
+  { id: 'estudo', name: 'Estudo' },
+];
+
 const KEYS = {
   activities: 'personalActivities',
   template: 'personalWeeklyTemplate',
@@ -13,7 +18,7 @@ const KEYS = {
 
 export async function getPersonalActivities(): Promise<PersonalActivity[]> {
   const raw = await AsyncStorage.getItem(KEYS.activities);
-  if (!raw) return [];
+  if (raw === null) return DEFAULT_PERSONAL_ACTIVITIES;
   return JSON.parse(raw) as PersonalActivity[];
 }
 

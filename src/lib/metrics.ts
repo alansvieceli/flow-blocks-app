@@ -1,4 +1,5 @@
 import { Session, Team } from '../types';
+import { isFocusCategory } from './categories';
 import { getLocalWeekEnd, getLocalWeekStart, toLocalDateString } from './localDate';
 
 export interface CategoryMetrics {
@@ -46,7 +47,7 @@ export function getWeeklyMetricsByCategory(
   let interruptionMinutes = 0;
   for (const s of weekly) {
     const m = sessionMinutes(s);
-    if (s.categoryId === 'foco_profundo') {
+    if (isFocusCategory(s.categoryId)) {
       deepWorkMinutes += m;
     } else {
       interruptionMinutes += m;

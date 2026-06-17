@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  DEFAULT_PERSONAL_ACTIVITIES,
   getPersonalActivities,
   getPersonalDailyPlans,
   getPersonalWeeklyTemplate,
@@ -29,9 +30,9 @@ describe('personalStorage', () => {
   });
 
   describe('personalActivities', () => {
-    it('returns [] when absent', async () => {
+    it('returns installation defaults when absent', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
-      expect(await getPersonalActivities()).toEqual([]);
+      expect(await getPersonalActivities()).toEqual(DEFAULT_PERSONAL_ACTIVITIES);
     });
 
     it('saves and retrieves', async () => {

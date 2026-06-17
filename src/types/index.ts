@@ -1,8 +1,15 @@
-export type CategoryId = 'foco_profundo' | 'reunioes' | 'revisao_codigo' | 'admin';
+export type CategoryId = string;
+
+export interface Category {
+  id: CategoryId;
+  label: string;
+  order: number;
+}
 
 export interface Team {
   id: string;
   name: string;
+  order: number;
   maxWeeklyPercent: number | null;
 }
 

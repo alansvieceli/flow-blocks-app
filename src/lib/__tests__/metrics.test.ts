@@ -25,8 +25,18 @@ function makeSession(
   };
 }
 
-const TEAM_A: Team = { id: 'teamA', name: 'Team A', maxWeeklyPercent: 40 };
-const TEAM_B: Team = { id: 'teamB', name: 'Team B', maxWeeklyPercent: null };
+const TEAM_A: Team = {
+  id: 'teamA',
+  name: 'Team A',
+  order: 1,
+  maxWeeklyPercent: 40,
+};
+const TEAM_B: Team = {
+  id: 'teamB',
+  name: 'Team B',
+  order: 2,
+  maxWeeklyPercent: null,
+};
 
 // This week sessions (week of 2026-06-15 Mon .. 2026-06-21 Sun)
 const SESSION_MON_FOCUS = makeSession({
@@ -346,7 +356,12 @@ describe('getDailyMetrics', () => {
   });
 
   it('limits topTeams to 2', () => {
-    const TEAM_C: Team = { id: 'teamC', name: 'Team C', maxWeeklyPercent: null };
+    const TEAM_C: Team = {
+      id: 'teamC',
+      name: 'Team C',
+      order: 3,
+      maxWeeklyPercent: null,
+    };
     const s1 = makeSession({
       startedAt: '2026-06-16T09:00:00.000Z',
       durationSeconds: 3600,

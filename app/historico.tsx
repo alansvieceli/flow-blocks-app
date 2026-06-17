@@ -7,7 +7,7 @@ import { formatDuration } from '../src/lib/formatDuration';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
-import { Session, Team } from '../src/types';
+import { Category, Session, Team } from '../src/types';
 
 type FilterType = 'hoje' | 'semana' | 'mes';
 
@@ -83,7 +83,15 @@ function groupByDay(sessions: Session[]): GroupedDay[] {
   return Array.from(map.values());
 }
 
-function SessionCard({ session, teams }: { session: Session; teams: Team[] }) {
+function SessionCard({
+  categories,
+  session,
+  teams,
+}: {
+  categories: Category[];
+  session: Session;
+  teams: Team[];
+}) {
   const team = teams.find((t) => t.id === session.teamId);
   const teamName = session.teamId ? (team?.name ?? 'Equipe removida') : 'Sem equipe';
   const teamRemoved = !team && !!session.teamId;
@@ -96,7 +104,9 @@ function SessionCard({ session, teams }: { session: Session; teams: Team[] }) {
       style={styles.sessionCard}
     >
       <View style={styles.sessionRow}>
-        <Text style={styles.categoryName}>{getCategoryLabel(session.categoryId)}</Text>
+        <Text style={styles.categoryName}>
+          {getCategoryLabel(session.categoryId, categories)}
+        </Text>
         <Text style={styles.durationText}>
           {formatDuration(session.durationSeconds)}
         </Text>
@@ -111,7 +121,7 @@ function SessionCard({ session, teams }: { session: Session; teams: Team[] }) {
 }
 
 export default function HistoricoScreen() {
-  const { sessions, teams } = useAppData();
+  const { categories, sessions, teams } = useAppData();
   const [filter, setFilter] = useState<FilterType>('hoje');
   const sortedSessions = [...sessions].sort(
     (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
@@ -173,7 +183,12 @@ export default function HistoricoScreen() {
                 </Text>
               </View>
               {group.sessions.map((s) => (
-                <SessionCard key={s.id} session={s} teams={teams} />
+                <SessionCard
+                  key={s.id}
+                  categories={categories}
+                  session={s}
+                  teams={teams}
+                />
               ))}
             </View>
           )}

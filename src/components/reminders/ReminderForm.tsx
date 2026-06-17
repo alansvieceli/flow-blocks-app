@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CATEGORIES } from '../../lib/categories';
+import { OptionPicker } from '../common';
 import {
   cancelReminderNotification,
   requestNotificationPermission,
@@ -44,7 +44,7 @@ function formatTime(d: Date): string {
 
 export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
   const insets = useSafeAreaInsets();
-  const { reminders, settings, teams, updateReminders } = useAppData();
+  const { categories, reminders, settings, teams, updateReminders } = useAppData();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(getDefaultDate);
@@ -55,6 +55,19 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
   const [existingReminder, setExistingReminder] = useState<Reminder | null>(null);
   const [permissionWarning, setPermissionWarning] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; datetime?: string }>({});
+  const categoryItems = categories.map((category) => ({
+    id: category.id,
+    label: category.label,
+    detail: `Ordem ${category.order}`,
+  }));
+  const teamItems = teams.map((team) => ({
+    id: team.id,
+    label: team.name,
+    detail:
+      team.maxWeeklyPercent !== null
+        ? `Ordem ${team.order} · Meta ${team.maxWeeklyPercent}%`
+        : `Ordem ${team.order}`,
+  }));
 
   useEffect(() => {
     if (!reminderId) {
@@ -273,60 +286,30 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
           <Text style={styles.errorText}>{errors.datetime}</Text>
         ) : null}
 
-        <Text style={styles.label}>Categoria (opcional)</Text>
-        <View style={styles.chipsRow}>
-          {CATEGORIES.map((cat) => (
-            <TouchableOpacity
-              key={cat.id}
-              onPress={() => setCategoryId(categoryId === cat.id ? null : cat.id)}
-              activeOpacity={0.8}
-            >
-              {categoryId === cat.id ? (
-                <LinearGradient
-                  colors={[colors.accentFrom, colors.accentTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.chipGradient}
-                >
-                  <Text style={styles.chipActiveText}>{cat.label}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.chipInactive}>
-                  <Text style={styles.chipInactiveText}>{cat.label}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+        <View style={styles.pickerWrap}>
+          <OptionPicker
+            emptyMessage="Nenhuma categoria cadastrada."
+            items={categoryItems}
+            label="Categoria (opcional)"
+            onClear={() => setCategoryId(null)}
+            onSelect={(id) => setCategoryId(categoryId === id ? null : id)}
+            placeholder="Selecionar categoria"
+            selectedId={categoryId}
+          />
         </View>
 
         {teams.length > 0 ? (
-          <>
-            <Text style={styles.label}>Equipe (opcional)</Text>
-            <View style={styles.chipsRow}>
-              {teams.map((team) => (
-                <TouchableOpacity
-                  key={team.id}
-                  onPress={() => setTeamId(teamId === team.id ? null : team.id)}
-                  activeOpacity={0.8}
-                >
-                  {teamId === team.id ? (
-                    <LinearGradient
-                      colors={[colors.accentFrom, colors.accentTo]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.chipGradient}
-                    >
-                      <Text style={styles.chipActiveText}>{team.name}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <View style={styles.chipInactive}>
-                      <Text style={styles.chipInactiveText}>{team.name}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
+          <View style={styles.pickerWrap}>
+            <OptionPicker
+              emptyMessage="Nenhuma equipe cadastrada."
+              items={teamItems}
+              label="Equipe (opcional)"
+              onClear={() => setTeamId(null)}
+              onSelect={(id) => setTeamId(teamId === id ? null : id)}
+              placeholder="Selecionar equipe"
+              selectedId={teamId}
+            />
+          </View>
         ) : null}
 
         <TouchableOpacity
@@ -447,33 +430,9 @@ const styles = StyleSheet.create({
     color: colors.destructiveFrom,
     marginHorizontal: 16,
   },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  pickerWrap: {
     marginHorizontal: 16,
-  },
-  chipGradient: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  chipActiveText: {
-    color: colors.chipActiveText,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  chipInactive: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.chipInactiveBackground,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  chipInactiveText: {
-    color: colors.chipInactiveText,
-    fontSize: 13,
+    marginTop: 4,
   },
   saveWrapper: {
     marginHorizontal: 16,

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTeams, saveTeams } from './teamsStorage';
 import { Team } from '../types';
 
-const team: Team = { id: '1', name: 'Alpha', maxWeeklyPercent: 40 };
+const team: Team = { id: '1', name: 'Alpha', order: 1, maxWeeklyPercent: 40 };
 
 beforeEach(() => AsyncStorage.clear());
 
