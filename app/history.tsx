@@ -126,7 +126,7 @@ function SessionCard({
   );
 }
 
-export default function HistoricoScreen() {
+export default function HistoryScreen() {
   const { categories, sessions, teams } = useAppData();
   const [filter, setFilter] = useState<FilterType>('hoje');
   const sortedSessions = [...sessions].sort(
@@ -144,7 +144,7 @@ export default function HistoricoScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Histórico" backTo="/(tabs)/mais" />
+      <ScreenHeader title="Histórico" backTo="/(tabs)/more" />
 
       <View style={styles.filterRow}>
         {filterOptions.map((f) => (

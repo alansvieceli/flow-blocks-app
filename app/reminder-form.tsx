@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { ReminderForm } from '../src/components/reminders/ReminderForm';
 import { colors } from '../src/theme/colors';
 
-export default function LembreteFormScreen() {
+export default function ReminderFormScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
@@ -11,7 +11,7 @@ export default function LembreteFormScreen() {
     <View style={styles.container}>
       <ReminderForm
         reminderId={id}
-        onClose={() => router.replace('/(tabs)/lembretes')}
+        onClose={() => router.replace('/(tabs)/reminders')}
       />
     </View>
   );

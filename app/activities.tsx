@@ -14,69 +14,57 @@ import {
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { Card, EmptyState, FabButton } from '../src/components/common';
-import { isLockedCategory } from '../src/lib/categories';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
-import { Category } from '../src/types';
+import { PersonalActivity } from '../src/types';
 
-export default function CategoriasScreen() {
-  const { categories, updateCategories } = useAppData();
+export default function ActivitiesScreen() {
+  const { personalActivities: activities, updatePersonalActivities } = useAppData();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputName, setInputName] = useState('');
-  const [inputOrder, setInputOrder] = useState('');
   const [inputError, setInputError] = useState('');
 
   function openCreate() {
     setEditingId(null);
     setInputName('');
-    setInputOrder(String(Math.max(0, ...categories.map((c) => c.order)) + 1));
     setInputError('');
     setModalVisible(true);
   }
 
-  function openEdit(category: Category) {
-    setEditingId(category.id);
-    setInputName(category.label);
-    setInputOrder(String(category.order));
+  function openEdit(activity: PersonalActivity) {
+    setEditingId(activity.id);
+    setInputName(activity.name);
     setInputError('');
     setModalVisible(true);
   }
 
   async function handleSave() {
-    const label = inputName.trim();
-    const order = Number(inputOrder);
-    if (!label) {
+    const name = inputName.trim();
+    if (!name) {
       setInputError('O nome é obrigatório.');
       return;
     }
-    if (!inputOrder || !Number.isInteger(order) || order < 1) {
-      setInputError('A ordem deve ser um número maior que zero.');
-      return;
+    let updated: PersonalActivity[];
+    if (editingId) {
+      updated = activities.map((a) => (a.id === editingId ? { ...a, name } : a));
+    } else {
+      updated = [...activities, { id: Date.now().toString(), name }];
     }
-    if (order === 1 && editingId !== 'foco') {
-      setInputError('A ordem 1 é reservada para a categoria Foco.');
-      return;
-    }
-
-    const updated = editingId
-      ? categories.map((c) => (c.id === editingId ? { ...c, label, order } : c))
-      : [...categories, { id: Date.now().toString(), label, order }];
-
-    await updateCategories(updated);
+    await updatePersonalActivities(updated);
     setModalVisible(false);
   }
 
   async function handleDelete(id: string) {
-    if (isLockedCategory(id)) return;
-    Alert.alert('Excluir categoria', 'Deseja remover esta categoria?', [
+    Alert.alert('Excluir atividade', 'Deseja remover esta atividade?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          await updateCategories(categories.filter((c) => c.id !== id));
+          const updated = activities.filter((a) => a.id !== id);
+          await updatePersonalActivities(updated);
         },
       },
     ]);
@@ -84,62 +72,46 @@ export default function CategoriasScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Categorias" backTo="/(tabs)/mais" />
+      <ScreenHeader title="Atividades pessoais" backTo="/(tabs)/more" />
 
-      {categories.length === 0 ? (
+      {activities.length === 0 ? (
         <EmptyState
-          icon="albums-outline"
-          message="Nenhuma categoria. Toque em + para criar."
+          icon="list-outline"
+          message="Nenhuma atividade. Toque em + para criar."
         />
       ) : (
         <FlatList
-          data={categories}
+          data={activities}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <Card style={styles.row}>
-              <Ionicons
-                name={isLockedCategory(item.id) ? 'flash-outline' : 'albums-outline'}
-                size={18}
-                color={
-                  isLockedCategory(item.id) ? colors.accentFrom : colors.textSecondary
-                }
-              />
+              <Ionicons name="sparkles-outline" size={18} color={colors.accentFrom} />
               <Text style={styles.rowName} numberOfLines={1}>
-                {item.label}
+                {item.name}
               </Text>
-              <Text style={styles.rowOrder}>#{item.order}</Text>
-              {!isLockedCategory(item.id) && (
-                <View style={styles.rowActions}>
-                  <TouchableOpacity
-                    onPress={() => openEdit(item)}
-                    style={styles.iconBtn}
-                  >
-                    <Ionicons
-                      name="pencil-outline"
-                      size={18}
-                      color={colors.accentFrom}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDelete(item.id)}
-                    style={styles.iconBtn}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={18}
-                      color={colors.destructiveFrom}
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
+              <View style={styles.rowActions}>
+                <TouchableOpacity onPress={() => openEdit(item)} style={styles.iconBtn}>
+                  <Ionicons name="pencil-outline" size={18} color={colors.accentFrom} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDelete(item.id)}
+                  style={styles.iconBtn}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={colors.destructiveFrom}
+                  />
+                </TouchableOpacity>
+              </View>
             </Card>
           )}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
         />
       )}
 
-      <FabButton accessibilityLabel="Criar categoria" onPress={openCreate} />
+      <FabButton accessibilityLabel="Criar atividade" onPress={openCreate} />
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <KeyboardAvoidingView
@@ -148,26 +120,15 @@ export default function CategoriasScreen() {
         >
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              {editingId ? 'Renomear categoria' : 'Nova categoria'}
+              {editingId ? 'Renomear atividade' : 'Nova atividade'}
             </Text>
             <TextInput
               style={[styles.input, inputError ? styles.inputError : undefined]}
-              placeholder="Nome da categoria"
+              placeholder="Nome da atividade"
               placeholderTextColor={colors.textSecondary}
               value={inputName}
-              onChangeText={(value) => {
-                setInputName(value);
-                setInputError('');
-              }}
-            />
-            <TextInput
-              style={[styles.input, inputError ? styles.inputError : undefined]}
-              placeholder="Ordem"
-              placeholderTextColor={colors.textSecondary}
-              value={inputOrder}
-              keyboardType="number-pad"
-              onChangeText={(value) => {
-                setInputOrder(value.replace(/\D/g, ''));
+              onChangeText={(t) => {
+                setInputName(t);
                 setInputError('');
               }}
             />
@@ -210,7 +171,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rowName: { flex: 1, fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
-  rowOrder: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
   rowActions: { flexDirection: 'row', gap: 8 },
   iconBtn: { padding: 4 },
   modalOverlay: {

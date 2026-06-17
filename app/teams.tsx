@@ -19,7 +19,7 @@ import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { Team } from '../src/types';
 
-export default function EquipesScreen() {
+export default function TeamsScreen() {
   const { isLoading, teams, updateTeams } = useAppData();
   const [formVisible, setFormVisible] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -112,7 +112,7 @@ export default function EquipesScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Equipes" backTo="/(tabs)/mais" />
+      <ScreenHeader title="Equipes" backTo="/(tabs)/more" />
 
       {!isLoading && teams.length === 0 ? (
         <EmptyState

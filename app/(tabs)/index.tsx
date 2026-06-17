@@ -308,7 +308,7 @@ export default function HomeScreen() {
           const entries = todayPlan?.entries ?? [];
           const doneCount = entries.filter((e) => e.done).length;
           const goToPlano = () =>
-            router.push({ pathname: '/plano-dia', params: { date: todayStr } });
+            router.push({ pathname: '/day-plan', params: { date: todayStr } });
 
           const VISIBLE = 2;
           const overflow = entries.length > VISIBLE ? entries.length - VISIBLE : 0;

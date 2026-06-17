@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ListRow, ScreenScaffold, SectionHeader } from '../../src/components/common';
 
-export default function MaisScreen() {
+export default function MoreScreen() {
   const router = useRouter();
 
   return (
@@ -15,19 +15,19 @@ export default function MaisScreen() {
           icon="people-outline"
           title="Equipes"
           subtitle="Projetos e metas semanais"
-          onPress={() => router.push('/equipes')}
+          onPress={() => router.push('/teams')}
         />
         <ListRow
           icon="albums-outline"
           title="Categorias"
           subtitle="Tipos de blocos de trabalho"
-          onPress={() => router.push('/categorias')}
+          onPress={() => router.push('/categories')}
         />
         <ListRow
           icon="time-outline"
           title="Histórico"
           subtitle="Sessões registradas"
-          onPress={() => router.push('/historico')}
+          onPress={() => router.push('/history')}
         />
 
         <SectionHeader title="PESSOAL" />
@@ -35,13 +35,13 @@ export default function MaisScreen() {
           icon="sparkles-outline"
           title="Atividades"
           subtitle="Lista de atividades pessoais"
-          onPress={() => router.push('/atividades')}
+          onPress={() => router.push('/activities')}
         />
         <ListRow
           icon="calendar-outline"
           title="Template semanal"
           subtitle="Planejamento recorrente por dia"
-          onPress={() => router.push('/template-semanal')}
+          onPress={() => router.push('/weekly-template')}
         />
 
         <SectionHeader title="APP" />
@@ -49,7 +49,7 @@ export default function MaisScreen() {
           icon="settings-outline"
           title="Configurações"
           subtitle="Preferências e notificações"
-          onPress={() => router.push('/configuracoes')}
+          onPress={() => router.push('/settings')}
         />
       </ScreenScaffold>
     </View>

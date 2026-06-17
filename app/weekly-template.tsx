@@ -29,8 +29,7 @@ const DAY_NAMES = [
   'Domingo',
 ];
 
-// dayOfWeek: 0=Sun in JS, but our template uses 1=Mon..0=Sun
-// We display Mon(1)..Sun(0) in order [1,2,3,4,5,6,0]
+// Display order: Mon(1)..Sun(0)
 const DISPLAY_ORDER: (0 | 1 | 2 | 3 | 4 | 5 | 6)[] = [1, 2, 3, 4, 5, 6, 0];
 
 function getDayEntries(
@@ -40,7 +39,7 @@ function getDayEntries(
   return template.find((d) => d.dayOfWeek === dayOfWeek)?.entries ?? [];
 }
 
-export default function TemplateSemanalScreen() {
+export default function WeeklyTemplateScreen() {
   const {
     personalActivities: activities,
     personalWeeklyTemplate: template,
@@ -48,7 +47,6 @@ export default function TemplateSemanalScreen() {
   } = useAppData();
   const [editingDay, setEditingDay] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | null>(null);
 
-  // mini-form state
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editBlockIdx, setEditBlockIdx] = useState<number | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
@@ -194,7 +192,6 @@ export default function TemplateSemanalScreen() {
 
         <FabButton accessibilityLabel="Adicionar bloco" onPress={openAddBlock} />
 
-        {/* Add/Edit block modal */}
         <Modal visible={addModalVisible} transparent animationType="fade">
           <KeyboardAvoidingView
             style={styles.modalOverlay}
@@ -277,10 +274,9 @@ export default function TemplateSemanalScreen() {
     );
   }
 
-  // Day list view
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Template semanal" backTo="/(tabs)/mais" />
+      <ScreenHeader title="Template semanal" backTo="/(tabs)/more" />
       <ScrollView contentContainerStyle={styles.listContent}>
         {DISPLAY_ORDER.map((dayOfWeek, displayIdx) => {
           const entries = getDayEntries(template, dayOfWeek);

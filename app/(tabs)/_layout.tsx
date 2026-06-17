@@ -54,7 +54,7 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="painel"
+          name="dashboard"
           options={{
             title: 'Painel',
             tabBarIcon: ({ color }) => (
@@ -63,7 +63,7 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="lembretes"
+          name="reminders"
           options={{
             title: 'Lembretes',
             tabBarIcon: ({ color }) => (
@@ -72,7 +72,7 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="mais"
+          name="more"
           options={{
             title: 'Mais',
             tabBarIcon: ({ color }) => (

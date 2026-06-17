@@ -23,15 +23,15 @@ import {
   PersonalWeeklyTemplateDay,
 } from '../src/types';
 
-type DoneState = PersonalDailyPlanEntryStatus;
+type EntryStatus = PersonalDailyPlanEntryStatus;
 
-function cycleState(current: DoneState): DoneState {
+function cycleStatus(current: EntryStatus): EntryStatus {
   if (current === 'pending') return 'done';
   if (current === 'done') return 'not-done';
   return 'pending';
 }
 
-function getStateFromEntry(entry: PersonalDailyPlanEntry): DoneState {
+function getEntryStatus(entry: PersonalDailyPlanEntry): EntryStatus {
   if (entry.status) return entry.status;
   return entry.done ? 'done' : 'pending';
 }
@@ -41,7 +41,6 @@ function buildFromTemplate(
   jsDay: number,
   date: string,
 ): PersonalDailyPlan {
-  // jsDay: 0=Sun, 1=Mon, ... but template uses 1=Mon, 0=Sun (same as JS)
   const dayOfWeek = jsDay as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const dayTemplate = template.find((d) => d.dayOfWeek === dayOfWeek);
   const entries: PersonalDailyPlanEntry[] = (dayTemplate?.entries ?? []).map((e) => ({
@@ -55,7 +54,7 @@ function buildFromTemplate(
   return { date, entries };
 }
 
-export default function PlanoDiaScreen() {
+export default function DayPlanScreen() {
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const today = new Date();
   const dateStr = dateParam ?? toLocalDateString(today);
@@ -68,9 +67,10 @@ export default function PlanoDiaScreen() {
 
   const [plan, setPlan] = useState<PersonalDailyPlan>({ date: dateStr, entries: [] });
   const [preFilled, setPreFilled] = useState(false);
-  const [entryStates, setEntryStates] = useState<Map<string, DoneState>>(new Map());
+  const [entryStatuses, setEntryStatuses] = useState<Map<string, EntryStatus>>(
+    new Map(),
+  );
 
-  // Add entry modal
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [durationStr, setDurationStr] = useState('');
@@ -87,20 +87,20 @@ export default function PlanoDiaScreen() {
 
     if (existing && (existing.entries.length > 0 || !templateHasEntries)) {
       setPlan(existing);
-      const stateMap = new Map<string, DoneState>();
+      const statusMap = new Map<string, EntryStatus>();
       for (const e of existing.entries) {
-        stateMap.set(e.id, getStateFromEntry(e));
+        statusMap.set(e.id, getEntryStatus(e));
       }
-      setEntryStates(stateMap);
+      setEntryStatuses(statusMap);
       return;
     }
 
     const newPlan = buildFromTemplate(personalWeeklyTemplate, jsDay, dateStr);
     setPlan(newPlan);
     if (newPlan.entries.length > 0) setPreFilled(true);
-    const stateMap = new Map<string, DoneState>();
-    for (const e of newPlan.entries) stateMap.set(e.id, 'pending');
-    setEntryStates(stateMap);
+    const statusMap = new Map<string, EntryStatus>();
+    for (const e of newPlan.entries) statusMap.set(e.id, 'pending');
+    setEntryStatuses(statusMap);
     if (newPlan.entries.length > 0) {
       void updatePersonalDailyPlans(
         existing
@@ -120,11 +120,11 @@ export default function PlanoDiaScreen() {
   }
 
   async function toggleEntry(id: string) {
-    const current = entryStates.get(id) ?? 'pending';
-    const next = cycleState(current);
-    const newStates = new Map(entryStates);
-    newStates.set(id, next);
-    setEntryStates(newStates);
+    const current = entryStatuses.get(id) ?? 'pending';
+    const next = cycleStatus(current);
+    const newStatuses = new Map(entryStatuses);
+    newStatuses.set(id, next);
+    setEntryStatuses(newStatuses);
 
     const updatedEntries = plan.entries.map((e) =>
       e.id === id ? { ...e, done: next === 'done', status: next } : e,
@@ -134,9 +134,9 @@ export default function PlanoDiaScreen() {
 
   async function removeEntry(id: string) {
     const updatedEntries = plan.entries.filter((e) => e.id !== id);
-    const newStates = new Map(entryStates);
-    newStates.delete(id);
-    setEntryStates(newStates);
+    const newStatuses = new Map(entryStatuses);
+    newStatuses.delete(id);
+    setEntryStatuses(newStatuses);
     await savePlan({ ...plan, entries: updatedEntries });
   }
 
@@ -159,7 +159,7 @@ export default function PlanoDiaScreen() {
     }
 
     const existing = plan.entries.find((e) => e.activityId === selectedActivityId);
-    const newStates = new Map(entryStates);
+    const newStatuses = new Map(entryStatuses);
     let updatedEntries: PersonalDailyPlanEntry[];
 
     if (existing) {
@@ -175,10 +175,10 @@ export default function PlanoDiaScreen() {
         status: 'pending',
       };
       updatedEntries = [...plan.entries, newEntry];
-      newStates.set(newEntry.id, 'pending');
+      newStatuses.set(newEntry.id, 'pending');
     }
 
-    setEntryStates(newStates);
+    setEntryStatuses(newStatuses);
     await savePlan({ ...plan, entries: updatedEntries });
     setAddModalVisible(false);
   }
@@ -187,13 +187,15 @@ export default function PlanoDiaScreen() {
     return activities.find((a) => a.id === activityId)?.name ?? 'Atividade removida';
   }
 
-  function isRemoved(activityId: string): boolean {
+  function isRemovedActivity(activityId: string): boolean {
     return !activities.find((a) => a.id === activityId);
   }
 
-  const doneCount = plan.entries.filter((e) => entryStates.get(e.id) === 'done').length;
+  const doneCount = plan.entries.filter(
+    (e) => entryStatuses.get(e.id) === 'done',
+  ).length;
   const notDoneCount = plan.entries.filter(
-    (e) => entryStates.get(e.id) === 'not-done',
+    (e) => entryStatuses.get(e.id) === 'not-done',
   ).length;
   const pendingCount = plan.entries.length - doneCount - notDoneCount;
 
@@ -219,29 +221,29 @@ export default function PlanoDiaScreen() {
           <Text style={styles.emptyText}>Nenhuma atividade planejada para hoje.</Text>
         ) : (
           plan.entries.map((entry) => {
-            const state = entryStates.get(entry.id) ?? 'pending';
+            const status = entryStatuses.get(entry.id) ?? 'pending';
             const name = resolveActivity(entry.activityId);
-            const removed = isRemoved(entry.activityId);
+            const removed = isRemovedActivity(entry.activityId);
             return (
               <View
                 key={entry.id}
                 style={[
                   styles.entryRow,
                   styles.entryRowSpaced,
-                  state === 'done' && styles.entryRowDone,
+                  status === 'done' && styles.entryRowDone,
                 ]}
               >
                 <TouchableOpacity
                   onPress={() => toggleEntry(entry.id)}
                   style={styles.checkbox}
                 >
-                  {state === 'done' ? (
+                  {status === 'done' ? (
                     <Ionicons
                       name="checkmark-circle"
                       size={22}
                       color={colors.success}
                     />
-                  ) : state === 'not-done' ? (
+                  ) : status === 'not-done' ? (
                     <Ionicons
                       name="close-circle-outline"
                       size={22}
@@ -258,14 +260,14 @@ export default function PlanoDiaScreen() {
                 <View
                   style={[
                     styles.entryContent,
-                    state === 'not-done' && styles.entryContentMuted,
+                    status === 'not-done' && styles.entryContentMuted,
                   ]}
                 >
                   <Text
                     style={[
                       styles.entryName,
                       removed && styles.removedText,
-                      state === 'not-done' && styles.strikethrough,
+                      status === 'not-done' && styles.strikethrough,
                     ]}
                     numberOfLines={1}
                   >
@@ -322,7 +324,6 @@ export default function PlanoDiaScreen() {
 
       <FabButton accessibilityLabel="Adicionar atividade" onPress={openAddModal} />
 
-      {/* Add entry modal */}
       <Modal visible={addModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>

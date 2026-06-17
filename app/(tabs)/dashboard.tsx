@@ -92,7 +92,6 @@ function WeeklySection({
     <>
       <SectionTitle icon="calendar-outline" label="ESTA SEMANA" />
 
-      {/* Category card */}
       <View style={styles.card}>
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
@@ -124,7 +123,6 @@ function WeeklySection({
         </View>
       </View>
 
-      {/* Team card */}
       <View style={styles.card}>
         {teamMetrics.length === 0 ? (
           <Text style={styles.emptyText}>Nenhuma equipe registrada esta semana.</Text>
@@ -181,7 +179,7 @@ function HeatmapSection({
   function cellColor(val: number): string {
     if (val === 0) return colors.cardBorder;
     const intensity = Math.min(val / maxVal, 1);
-    const r = Math.round(124 + (124 - 124) * intensity); // accentFrom #7c3aed → keep purple
+    const r = Math.round(124 + (124 - 124) * intensity);
     const g = Math.round(58 * (1 - intensity));
     const b = Math.round(237 * intensity);
     const hex = (n: number) => n.toString(16).padStart(2, '0');
@@ -192,7 +190,6 @@ function HeatmapSection({
     <>
       <SectionTitle icon="grid-outline" label="MAPA DE CALOR" />
 
-      {/* Team filter chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -230,7 +227,6 @@ function HeatmapSection({
         </View>
       </ScrollView>
 
-      {/* Category filter chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -273,10 +269,8 @@ function HeatmapSection({
         </View>
       </ScrollView>
 
-      {/* Heatmap grid */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View>
-          {/* Hour labels */}
           <View style={styles.heatmapHourRow}>
             <View style={styles.heatmapDayLabel} />
             {Array.from({ length: 24 }, (_, h) => (
@@ -317,7 +311,6 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
 
   return (
     <>
-      {/* Streak */}
       <SectionTitle icon="flame-outline" label="SEQUÊNCIA" />
       <View style={styles.card}>
         <View style={styles.streakRow}>
@@ -331,7 +324,6 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
         </View>
       </View>
 
-      {/* Context switches */}
       <SectionTitle icon="swap-horizontal-outline" label="TROCAS DE CONTEXTO" />
       <View style={styles.card}>
         <View style={styles.switchRow}>
@@ -346,7 +338,6 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
         </View>
       </View>
 
-      {/* Team balance alerts */}
       {alerts.length > 0 && (
         <>
           <SectionTitle icon="alert-circle-outline" label="ALERTAS DE EQUIPE" />
@@ -364,7 +355,6 @@ function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[]
         </>
       )}
 
-      {/* Daily summary */}
       {dailyMetrics.totalMinutes > 0 && (
         <>
           <SectionTitle icon="today-outline" label="HOJE" />
@@ -456,7 +446,7 @@ function PersonalChartSection() {
   );
 }
 
-export default function PainelScreen() {
+export default function DashboardScreen() {
   const { categories, sessions, teams } = useAppData();
 
   const today = new Date();

@@ -46,7 +46,7 @@ function ToggleRow({
   );
 }
 
-export default function ConfiguracoesScreen() {
+export default function SettingsScreen() {
   const { settings, updateSettings, resetAll } = useAppData();
 
   async function update(patch: Partial<AppSettings>) {
@@ -77,7 +77,7 @@ export default function ConfiguracoesScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Configurações" backTo="/(tabs)/mais" />
+      <ScreenHeader title="Configurações" backTo="/(tabs)/more" />
       <ScrollView contentContainerStyle={styles.content}>
         <SectionHeader title="NOTIFICAÇÕES" style={styles.sectionHeader} />
         <View style={styles.section}>

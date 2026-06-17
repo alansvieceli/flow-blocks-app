@@ -83,7 +83,7 @@ function ReminderRow({
   );
 }
 
-export default function LembretesScreen() {
+export default function RemindersScreen() {
   const { categories, isLoading, reminders, teams, updateReminders } = useAppData();
   const [formReminderId, setFormReminderId] = useState<string | undefined>();
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -197,7 +197,7 @@ export default function LembretesScreen() {
             accessibilityLabel="Fechar formulário"
             activeOpacity={1}
             onPress={handleCloseForm}
-            style={styles.modalBackdrop}
+            style={StyleSheet.absoluteFill}
           />
           <ReminderForm reminderId={formReminderId} onClose={handleCloseForm} />
         </View>
@@ -245,8 +245,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.42)',
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFill,
   },
 });
