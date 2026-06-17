@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -11,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { CATEGORIES } from '../../src/lib/categories';
+import { OptionPicker } from '../../src/components/common';
 import { formatDuration } from '../../src/lib/formatDuration';
 import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
@@ -34,6 +35,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const {
     activeSession,
+    categories,
     isLoading,
     personalActivities,
     personalDailyPlans,
@@ -51,11 +53,8 @@ export default function HomeScreen() {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [note, setNote] = useState('');
   const [noteSessionId, setNoteSessionId] = useState<string | null>(null);
-  const [lastSession, setLastSession] = useState<{
-    categoryId: CategoryId;
-    teamId: string | null;
-  } | null>(null);
   const [todayPlan, setTodayPlan] = useState<PersonalDailyPlan | null>(null);
+  const prefilledRef = useRef(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -90,6 +89,16 @@ export default function HomeScreen() {
   }, [activeSession, startTick, stopTick]);
 
   useEffect(() => {
+    if (isLoading || prefilledRef.current || activeSession) return;
+    const last = sessions[sessions.length - 1];
+    if (last) {
+      setSelectedCategory(last.categoryId);
+      setSelectedTeamId(last.teamId);
+    }
+    prefilledRef.current = true;
+  }, [isLoading, sessions, activeSession]);
+
+  useEffect(() => {
     if (isLoading) return;
     const today = new Date();
     const todayStr = toLocalDateString(today);
@@ -118,6 +127,19 @@ export default function HomeScreen() {
   const teamRequired = teams.length > 0;
   const canStart =
     selectedCategory !== null && (!teamRequired || selectedTeamId !== null);
+  const categoryItems = categories.map((category) => ({
+    id: category.id,
+    label: category.label,
+    detail: `Ordem ${category.order}`,
+  }));
+  const teamItems = teams.map((team) => ({
+    id: team.id,
+    label: team.name,
+    detail:
+      team.maxWeeklyPercent !== null
+        ? `Ordem ${team.order} · Meta ${team.maxWeeklyPercent}%`
+        : `Ordem ${team.order}`,
+  }));
 
   async function handleStart() {
     if (!canStart || !selectedCategory) return;
@@ -148,10 +170,6 @@ export default function HomeScreen() {
     };
     await updateSessions([...sessions, newSession]);
     await clearActiveSession();
-    setLastSession({
-      categoryId: activeSession.categoryId,
-      teamId: activeSession.teamId,
-    });
     setElapsed(0);
     setNoteSessionId(newSession.id);
     setNoteModalVisible(true);
@@ -167,13 +185,6 @@ export default function HomeScreen() {
     setNote('');
     setNoteSessionId(null);
     setNoteModalVisible(false);
-  }
-
-  function handleQuickRestart() {
-    if (!lastSession) return;
-    setSelectedCategory(lastSession.categoryId);
-    setSelectedTeamId(lastSession.teamId);
-    setLastSession(null);
   }
 
   const startedAtLabel = activeSession
@@ -239,18 +250,20 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.timerText}>{formatDuration(elapsed)}</Text>
             <View style={styles.chipsRow}>
-              {CATEGORIES.filter((c) => c.id === selectedCategory).map((c) => (
-                <View key={c.id} style={styles.chipActive}>
-                  <LinearGradient
-                    colors={[colors.accentFrom, colors.accentTo]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.chipGradient}
-                  >
-                    <Text style={styles.chipActiveText}>{c.label}</Text>
-                  </LinearGradient>
-                </View>
-              ))}
+              {categories
+                .filter((c) => c.id === selectedCategory)
+                .map((c) => (
+                  <View key={c.id} style={styles.chipActive}>
+                    <LinearGradient
+                      colors={[colors.accentFrom, colors.accentTo]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.chipGradient}
+                    >
+                      <Text style={styles.chipActiveText}>{c.label}</Text>
+                    </LinearGradient>
+                  </View>
+                ))}
               {selectedTeamId &&
                 teams
                   .filter((t) => t.id === selectedTeamId)
@@ -289,60 +302,24 @@ export default function HomeScreen() {
           >
             <Text style={styles.cardSectionLabel}>NOVO BLOCO</Text>
 
-            <Text style={styles.chipGroupLabel}>Categoria</Text>
-            <View style={styles.chipsRow}>
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setSelectedCategory(cat.id)}
-                  activeOpacity={0.8}
-                >
-                  {selectedCategory === cat.id ? (
-                    <LinearGradient
-                      colors={[colors.accentFrom, colors.accentTo]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.chipGradient}
-                    >
-                      <Text style={styles.chipActiveText}>{cat.label}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <View style={styles.chipInactive}>
-                      <Text style={styles.chipInactiveText}>{cat.label}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
+            <OptionPicker
+              emptyMessage="Cadastre uma categoria em Mais > Categorias."
+              items={categoryItems}
+              label="Categoria"
+              onSelect={setSelectedCategory}
+              placeholder="Selecionar categoria"
+              selectedId={selectedCategory}
+            />
 
             {teamRequired && (
-              <>
-                <Text style={styles.chipGroupLabel}>Equipe</Text>
-                <View style={styles.chipsRow}>
-                  {teams.map((team) => (
-                    <TouchableOpacity
-                      key={team.id}
-                      onPress={() => setSelectedTeamId(team.id)}
-                      activeOpacity={0.8}
-                    >
-                      {selectedTeamId === team.id ? (
-                        <LinearGradient
-                          colors={[colors.accentFrom, colors.accentTo]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={styles.chipGradient}
-                        >
-                          <Text style={styles.chipActiveText}>{team.name}</Text>
-                        </LinearGradient>
-                      ) : (
-                        <View style={styles.chipInactive}>
-                          <Text style={styles.chipInactiveText}>{team.name}</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
+              <OptionPicker
+                emptyMessage="Cadastre uma equipe em Mais > Equipes."
+                items={teamItems}
+                label="Equipe"
+                onSelect={setSelectedTeamId}
+                placeholder="Selecionar equipe"
+                selectedId={selectedTeamId}
+              />
             )}
 
             <TouchableOpacity
@@ -359,63 +336,87 @@ export default function HomeScreen() {
                 <Text style={styles.btnText}>Iniciar</Text>
               </LinearGradient>
             </TouchableOpacity>
-
-            {lastSession && (
-              <TouchableOpacity style={styles.btnRestart} onPress={handleQuickRestart}>
-                <Text style={styles.btnRestartText}>↩ Reiniciar última sessão</Text>
-              </TouchableOpacity>
-            )}
           </LinearGradient>
         )}
 
-        {/* Esta noite card */}
+        {/* Esta noite */}
         {(() => {
           const todayStr = toLocalDateString(new Date());
           const entries = todayPlan?.entries ?? [];
           const doneCount = entries.filter((e) => e.done).length;
-          const preview = entries.slice(0, 3);
-          const extra = entries.length - 3;
+          const goToPlano = () =>
+            router.push({ pathname: '/plano-dia', params: { date: todayStr } });
+
+          function fmtMins(m: number): string {
+            const h = Math.floor(m / 60);
+            const min = m % 60;
+            if (h > 0 && min > 0) return `${h}h ${min}m`;
+            if (h > 0) return `${h}h`;
+            return `${min}m`;
+          }
+
           return (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() =>
-                router.push({ pathname: '/plano-dia', params: { date: todayStr } })
-              }
+            <LinearGradient
+              colors={[colors.cardFrom, colors.cardTo]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.tonightSection}
             >
-              <LinearGradient
-                colors={['#0d2b1a', '#0a1f12']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.tonightCard}
+              <TouchableOpacity
+                onPress={goToPlano}
+                activeOpacity={0.7}
+                style={styles.tonightHeaderRow}
               >
-                <Text style={styles.tonightHeader}>🌙 Esta noite</Text>
-                {entries.length === 0 ? (
-                  <Text style={styles.tonightEmpty}>
-                    Nenhuma atividade planejada para hoje.
+                <View style={styles.tonightHeaderLeft}>
+                  <Ionicons
+                    name="moon-outline"
+                    size={14}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.tonightLabel}>ESTA NOITE — PLANO PESSOAL</Text>
+                </View>
+                {entries.length > 0 && (
+                  <Text style={styles.tonightCount}>
+                    {doneCount}/{entries.length}
                   </Text>
-                ) : (
-                  <>
-                    {preview.map((e) => {
-                      const name =
-                        personalActivities.find((a) => a.id === e.activityId)?.name ??
-                        'Atividade removida';
-                      return (
-                        <Text key={e.id} style={styles.tonightEntry} numberOfLines={1}>
-                          {e.done ? '✓ ' : '• '}
-                          {name} — {e.plannedMinutes} min
-                        </Text>
-                      );
-                    })}
-                    {extra > 0 && (
-                      <Text style={styles.tonightExtra}>+ {extra} mais</Text>
-                    )}
-                  </>
                 )}
-                <Text style={styles.tonightSummary}>
-                  {doneCount} feito de {entries.length} planejados
+              </TouchableOpacity>
+
+              {entries.length === 0 ? (
+                <Text style={styles.tonightEmptyText}>
+                  Nenhuma atividade planejada. Toque para adicionar.
                 </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+              ) : (
+                <View style={styles.tonightCardsRow}>
+                  {entries.slice(0, 3).map((entry) => {
+                    const name =
+                      personalActivities.find((a) => a.id === entry.activityId)?.name ??
+                      'Removida';
+                    const done = entry.done;
+                    return (
+                      <TouchableOpacity
+                        key={entry.id}
+                        onPress={goToPlano}
+                        activeOpacity={0.8}
+                        style={[styles.tonightCard, done && styles.tonightCardDone]}
+                      >
+                        <View style={styles.tonightAvatar}>
+                          <Text style={styles.tonightAvatarText}>
+                            {(name[0] ?? '?').toUpperCase()}
+                          </Text>
+                        </View>
+                        <Text style={styles.tonightCardName} numberOfLines={1}>
+                          {name}
+                        </Text>
+                        <Text style={styles.tonightCardDuration}>
+                          {fmtMins(entry.plannedMinutes)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </LinearGradient>
           );
         })()}
 
@@ -497,11 +498,6 @@ const styles = StyleSheet.create({
     ...typography.sectionLabel,
     color: colors.textSecondary,
   },
-  chipGroupLabel: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginBottom: -4,
-  },
   chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -521,18 +517,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
-  chipInactive: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.chipInactiveBackground,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  chipInactiveText: {
-    color: colors.chipInactiveText,
-    fontSize: 13,
-  },
   btn: {
     borderRadius: 12,
     paddingVertical: 14,
@@ -545,18 +529,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '800',
-  },
-  btnRestart: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.accentFrom,
-  },
-  btnRestartText: {
-    color: colors.accentFrom,
-    fontSize: 14,
-    fontWeight: '600',
   },
   recordingRow: {
     flexDirection: 'row',
@@ -642,25 +614,77 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  tonightCard: {
+  tonightSection: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: colors.success + '4d',
+    borderColor: colors.cardBorder,
     padding: 14,
+    gap: 12,
+  },
+  tonightHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  tonightHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  tonightHeader: {
-    fontSize: 13,
-    color: colors.success,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  tonightEntry: { fontSize: 12, color: colors.textPrimary },
-  tonightExtra: { fontSize: 11, color: colors.textSecondary },
-  tonightEmpty: { fontSize: 12, color: colors.textSecondary },
-  tonightSummary: {
+  tonightLabel: {
     ...typography.sectionLabel,
     color: colors.textSecondary,
-    marginTop: 4,
+  },
+  tonightCount: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  tonightCardsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tonightCard: {
+    flex: 1,
+    height: 92,
+    backgroundColor: colors.background,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    padding: 10,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  tonightCardDone: {
+    opacity: 0.4,
+  },
+  tonightAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    backgroundColor: colors.accentFrom + '33',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tonightAvatarText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.accentFrom,
+  },
+  tonightCardName: {
+    fontSize: 12,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    alignSelf: 'stretch',
+  },
+  tonightCardDuration: {
+    fontSize: 11,
+    color: colors.accentFrom,
+    fontWeight: '700',
+  },
+  tonightEmptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

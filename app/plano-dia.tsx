@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
+import { FabButton } from '../src/components/common';
 import { toLocalDateString } from '../src/lib/localDate';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
@@ -187,11 +188,6 @@ export default function PlanoDiaScreen() {
         title={displayDate}
         subtitle={preFilled ? 'Pré-preenchido do template' : undefined}
         backTo="/(tabs)/"
-        rightAction={
-          <TouchableOpacity onPress={openAddModal} style={styles.addBtn}>
-            <Text style={styles.addBtnText}>+ Adicionar</Text>
-          </TouchableOpacity>
-        }
       />
 
       <ScrollView contentContainerStyle={styles.listContent}>
@@ -272,7 +268,6 @@ export default function PlanoDiaScreen() {
         )}
       </ScrollView>
 
-      {/* Summary footer */}
       {plan.entries.length > 0 && (
         <View style={styles.footer}>
           <Text style={styles.footerText}>
@@ -280,6 +275,8 @@ export default function PlanoDiaScreen() {
           </Text>
         </View>
       )}
+
+      <FabButton accessibilityLabel="Adicionar atividade" onPress={openAddModal} />
 
       {/* Add entry modal */}
       <Modal visible={addModalVisible} transparent animationType="fade">
@@ -364,9 +361,7 @@ export default function PlanoDiaScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  addBtn: { padding: 4 },
-  addBtnText: { color: colors.accentFrom, fontSize: 14, fontWeight: '700' },
-  listContent: { padding: 16, paddingTop: 4, paddingBottom: 100 },
+  listContent: { padding: 16, paddingTop: 4, paddingBottom: 16 },
   emptyText: {
     ...typography.body,
     color: colors.textSecondary,
@@ -392,10 +387,6 @@ const styles = StyleSheet.create({
   entryDuration: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   iconBtn: { padding: 4 },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.cardBorder,

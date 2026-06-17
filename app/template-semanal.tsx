@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
+import { FabButton } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -198,21 +199,7 @@ export default function TemplateSemanalScreen() {
           )}
         </ScrollView>
 
-        {/* FAB */}
-        <TouchableOpacity
-          onPress={openAddBlock}
-          activeOpacity={0.85}
-          style={styles.fab}
-        >
-          <LinearGradient
-            colors={[colors.accentFrom, colors.accentTo]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fabGradient}
-          >
-            <Ionicons name="add" size={28} color={colors.textPrimary} />
-          </LinearGradient>
-        </TouchableOpacity>
+        <FabButton accessibilityLabel="Adicionar bloco" onPress={openAddBlock} />
 
         {/* Add/Edit block modal */}
         <Modal visible={addModalVisible} transparent animationType="fade">
@@ -355,24 +342,6 @@ export default function TemplateSemanalScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  fab: {
-    position: 'absolute',
-    bottom: 28,
-    right: 24,
-    borderRadius: 32,
-    elevation: 6,
-    shadowColor: colors.accentFrom,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   listContent: { padding: 16, paddingTop: 4, paddingBottom: 32 },
   emptyText: {
     ...typography.body,

@@ -16,6 +16,8 @@ export function FabButton({
   onPress,
 }: FabButtonProps) {
   const insets = useSafeAreaInsets();
+  // 80px above safe area keeps the button above the tab bar (~49-56px) on all screens
+  const bottom = Math.max(insets.bottom, 16) + 80;
 
   return (
     <TouchableOpacity
@@ -23,7 +25,7 @@ export function FabButton({
       accessibilityRole="button"
       activeOpacity={0.85}
       onPress={onPress}
-      style={[styles.fab, { bottom: Math.max(insets.bottom, 12) + 76 }]}
+      style={[styles.fab, { bottom }]}
     >
       <LinearGradient
         colors={[colors.accentFrom, colors.accentTo]}

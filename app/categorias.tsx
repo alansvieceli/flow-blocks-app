@@ -1,0 +1,242 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { ScreenHeader } from '../src/components/ScreenHeader';
+import { Card, EmptyState, FabButton } from '../src/components/common';
+import { useAppData } from '../src/state/AppDataProvider';
+import { colors } from '../src/theme/colors';
+import { typography } from '../src/theme/typography';
+import { Category } from '../src/types';
+
+export default function CategoriasScreen() {
+  const { categories, updateCategories } = useAppData();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [inputName, setInputName] = useState('');
+  const [inputOrder, setInputOrder] = useState('');
+  const [inputError, setInputError] = useState('');
+
+  function openCreate() {
+    setEditingId(null);
+    setInputName('');
+    setInputOrder(String(Math.max(0, ...categories.map((c) => c.order)) + 1));
+    setInputError('');
+    setModalVisible(true);
+  }
+
+  function openEdit(category: Category) {
+    setEditingId(category.id);
+    setInputName(category.label);
+    setInputOrder(String(category.order));
+    setInputError('');
+    setModalVisible(true);
+  }
+
+  async function handleSave() {
+    const label = inputName.trim();
+    const order = Number(inputOrder);
+    if (!label) {
+      setInputError('O nome é obrigatório.');
+      return;
+    }
+    if (!inputOrder || !Number.isInteger(order) || order < 1) {
+      setInputError('A ordem deve ser um número maior que zero.');
+      return;
+    }
+
+    const updated = editingId
+      ? categories.map((c) => (c.id === editingId ? { ...c, label, order } : c))
+      : [...categories, { id: Date.now().toString(), label, order }];
+
+    await updateCategories(updated);
+    setModalVisible(false);
+  }
+
+  async function handleDelete(id: string) {
+    Alert.alert('Excluir categoria', 'Deseja remover esta categoria?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          await updateCategories(categories.filter((c) => c.id !== id));
+        },
+      },
+    ]);
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScreenHeader title="Categorias" backTo="/(tabs)/mais" />
+
+      {categories.length === 0 ? (
+        <EmptyState
+          icon="albums-outline"
+          message="Nenhuma categoria. Toque em + para criar."
+        />
+      ) : (
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <Card style={styles.row}>
+              <Text style={styles.rowName} numberOfLines={1}>
+                {item.label}
+              </Text>
+              <Text style={styles.rowOrder}>#{item.order}</Text>
+              <View style={styles.rowActions}>
+                <TouchableOpacity onPress={() => openEdit(item)} style={styles.iconBtn}>
+                  <Ionicons name="pencil-outline" size={18} color={colors.accentFrom} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDelete(item.id)}
+                  style={styles.iconBtn}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={colors.destructiveFrom}
+                  />
+                </TouchableOpacity>
+              </View>
+            </Card>
+          )}
+          ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+        />
+      )}
+
+      <FabButton accessibilityLabel="Criar categoria" onPress={openCreate} />
+
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              {editingId ? 'Renomear categoria' : 'Nova categoria'}
+            </Text>
+            <TextInput
+              style={[styles.input, inputError ? styles.inputError : undefined]}
+              placeholder="Nome da categoria"
+              placeholderTextColor={colors.textSecondary}
+              value={inputName}
+              onChangeText={(value) => {
+                setInputName(value);
+                setInputError('');
+              }}
+            />
+            <TextInput
+              style={[styles.input, inputError ? styles.inputError : undefined]}
+              placeholder="Ordem"
+              placeholderTextColor={colors.textSecondary}
+              value={inputOrder}
+              keyboardType="number-pad"
+              onChangeText={(value) => {
+                setInputOrder(value.replace(/\D/g, ''));
+                setInputError('');
+              }}
+            />
+            {inputError ? <Text style={styles.errorText}>{inputError}</Text> : null}
+            <View style={styles.modalBtns}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.cancelBtn}
+              >
+                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSave}
+                activeOpacity={0.8}
+                style={styles.saveWrapper}
+              >
+                <LinearGradient
+                  colors={[colors.accentFrom, colors.accentTo]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.saveBtn}
+                >
+                  <Text style={styles.saveBtnText}>Salvar</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  listContent: { padding: 16, paddingTop: 4, paddingBottom: 32 },
+  itemSeparator: { height: 8 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    padding: 14,
+    gap: 8,
+  },
+  rowName: { flex: 1, fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
+  rowOrder: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
+  rowActions: { flexDirection: 'row', gap: 8 },
+  iconBtn: { padding: 4 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    width: '100%',
+    backgroundColor: '#12122a',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    padding: 20,
+    gap: 12,
+  },
+  modalTitle: { ...typography.screenTitle, color: colors.textPrimary, fontSize: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.textPrimary,
+    backgroundColor: '#0a0a14',
+  },
+  inputError: { borderColor: colors.destructiveFrom },
+  errorText: { fontSize: 12, color: colors.destructiveFrom },
+  modalBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+  cancelBtnText: { color: colors.textSecondary, fontWeight: '600' },
+  saveWrapper: { flex: 1 },
+  saveBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtnText: { color: colors.textPrimary, fontWeight: '800', fontSize: 14 },
+});

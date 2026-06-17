@@ -12,11 +12,10 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { Card, EmptyState, FabButton, LoadingState } from '../../src/components/common';
 import { ReminderForm } from '../../src/components/reminders/ReminderForm';
 import { cancelReminderNotification } from '../../src/lib/notifications';
-import { CATEGORIES } from '../../src/lib/categories';
 import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
-import { Reminder, Team } from '../../src/types';
+import { Category, Reminder, Team } from '../../src/types';
 
 function formatDatetime(iso: string): string {
   const d = new Date(iso);
@@ -30,17 +29,19 @@ function formatDatetime(iso: string): string {
 
 function ReminderRow({
   reminder,
+  categories,
   teams,
   onDelete,
   onEdit,
 }: {
   reminder: Reminder;
+  categories: Category[];
   teams: Team[];
   onDelete: (r: Reminder) => void;
   onEdit: (r: Reminder) => void;
 }) {
   const team = teams.find((t) => t.id === reminder.teamId);
-  const category = CATEGORIES.find((c) => c.id === reminder.categoryId);
+  const category = categories.find((c) => c.id === reminder.categoryId);
 
   return (
     <TouchableOpacity onPress={() => onEdit(reminder)} activeOpacity={0.8}>
@@ -83,7 +84,7 @@ function ReminderRow({
 }
 
 export default function LembretesScreen() {
-  const { isLoading, reminders, teams, updateReminders } = useAppData();
+  const { categories, isLoading, reminders, teams, updateReminders } = useAppData();
   const [formReminderId, setFormReminderId] = useState<string | undefined>();
   const [isFormVisible, setIsFormVisible] = useState(false);
 
@@ -140,6 +141,7 @@ export default function LembretesScreen() {
             <View style={item._section === 'past' ? styles.pastItem : undefined}>
               <ReminderRow
                 reminder={item}
+                categories={categories}
                 teams={teams}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
