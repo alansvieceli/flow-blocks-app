@@ -7,6 +7,7 @@ import {
   CategoryMetrics,
   TeamBalanceAlert,
   TeamMetrics,
+  WorkSchedule,
   getDailyMetrics,
   getContextSwitches,
   getHeatmapData,
@@ -157,10 +158,12 @@ function HeatmapSection({
   categories,
   sessions,
   teams,
+  schedule,
 }: {
   categories: Category[];
   sessions: Session[];
   teams: Team[];
+  schedule: WorkSchedule;
 }) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -176,14 +179,23 @@ function HeatmapSection({
 
   const maxVal = useMemo(() => Math.max(...matrix.flat(), 1), [matrix]);
 
-  function cellColor(val: number): string {
-    if (val === 0) return colors.cardBorder;
-    const intensity = Math.min(val / maxVal, 1);
-    const r = Math.round(124 + (124 - 124) * intensity);
-    const g = Math.round(58 * (1 - intensity));
-    const b = Math.round(237 * intensity);
-    const hex = (n: number) => n.toString(16).padStart(2, '0');
-    return `#${hex(r)}${hex(g)}${hex(b)}`;
+  function isWorkCell(dayIdx: number, hourIdx: number): boolean {
+    return (
+      dayIdx <= 4 && hourIdx >= schedule.workStartHour && hourIdx < schedule.workEndHour
+    );
+  }
+
+  function cellColor(val: number, dayIdx: number, hourIdx: number): string {
+    if (val > 0) {
+      const intensity = Math.min(val / maxVal, 1);
+      const r = Math.round(124 + (124 - 124) * intensity);
+      const g = Math.round(58 * (1 - intensity));
+      const b = Math.round(237 * intensity);
+      const hex = (n: number) => n.toString(16).padStart(2, '0');
+      return `#${hex(r)}${hex(g)}${hex(b)}`;
+    }
+    if (isWorkCell(dayIdx, hourIdx)) return '#1e1e2e';
+    return colors.cardBorder;
   }
 
   return (
@@ -287,7 +299,10 @@ function HeatmapSection({
               {row.map((val, hourIdx) => (
                 <View
                   key={hourIdx}
-                  style={[styles.heatmapCell, { backgroundColor: cellColor(val) }]}
+                  style={[
+                    styles.heatmapCell,
+                    { backgroundColor: cellColor(val, dayIdx, hourIdx) },
+                  ]}
                 />
               ))}
             </View>
@@ -298,8 +313,15 @@ function HeatmapSection({
   );
 }
 
-function ExtrasSection({ sessions, teams }: { sessions: Session[]; teams: Team[] }) {
-  const today = new Date();
+function ExtrasSection({
+  sessions,
+  teams,
+  today,
+}: {
+  sessions: Session[];
+  teams: Team[];
+  today: Date;
+}) {
   const streak = getStreak(sessions, today);
   const contextSwitches = getContextSwitches(sessions, today);
   const alerts = getTeamBalanceAlerts(sessions, teams, today);
@@ -447,9 +469,15 @@ function PersonalChartSection() {
 }
 
 export default function DashboardScreen() {
-  const { categories, sessions, teams } = useAppData();
+  const { categories, sessions, settings, teams } = useAppData();
 
   const today = new Date();
+  const schedule: WorkSchedule = {
+    workStartHour: settings.workStartHour,
+    workEndHour: settings.workEndHour,
+    lunchDurationMinutes: settings.lunchDurationMinutes,
+  };
+
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
   const teamMetrics = getWeeklyMetricsByTeam(sessions, teams, today);
   const alerts = getTeamBalanceAlerts(sessions, teams, today);
@@ -464,9 +492,14 @@ export default function DashboardScreen() {
           alerts={alerts}
         />
 
-        <HeatmapSection categories={categories} sessions={sessions} teams={teams} />
+        <HeatmapSection
+          categories={categories}
+          sessions={sessions}
+          teams={teams}
+          schedule={schedule}
+        />
 
-        <ExtrasSection sessions={sessions} teams={teams} />
+        <ExtrasSection sessions={sessions} teams={teams} today={today} />
 
         <PersonalChartSection />
       </ScrollView>
