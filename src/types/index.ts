@@ -40,6 +40,20 @@ export interface Reminder {
   notificationId: string | null;
 }
 
+export interface ActiveNudge {
+  id: string;
+  label: string;
+  type: 'personal' | 'work';
+  activityId?: string;
+  teamId?: string;
+  categoryId?: string;
+  startedAt: string;
+  durationSeconds: number;
+  endsAt: string;
+  notificationId: string | null;
+  extendCount: number;
+}
+
 export interface PersonalActivity {
   id: string;
   name: string;
