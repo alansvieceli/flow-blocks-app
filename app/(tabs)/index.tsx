@@ -3,6 +3,8 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AppState,
+  AppStateStatus,
   Modal,
   ScrollView,
   StyleSheet,
@@ -15,10 +17,20 @@ import { OptionPicker } from '../../src/components/common';
 import { formatDuration } from '../../src/lib/formatDuration';
 import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
+import {
+  cancelReminderNotification,
+  scheduleNudgeNotification,
+} from '../../src/lib/notifications';
 import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
-import { ActiveSession, CategoryId, PersonalDailyPlan } from '../../src/types';
+import {
+  ActiveNudge,
+  ActiveSession,
+  CategoryId,
+  PersonalDailyPlan,
+  Session,
+} from '../../src/types';
 
 function elapsedSeconds(startedAt: string): number {
   return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
@@ -33,14 +45,18 @@ function formatMinutes(m: number): string {
 export default function HomeScreen() {
   const router = useRouter();
   const {
+    activeNudge,
     activeSession,
     categories,
+    clearActiveNudge,
     isLoading,
     personalActivities,
     personalDailyPlans,
     personalWeeklyTemplate,
     sessions,
+    setActiveNudge,
     setActiveSession,
+    settings,
     teams,
     clearActiveSession,
     updatePersonalDailyPlans,
@@ -56,6 +72,10 @@ export default function HomeScreen() {
   const prefilledRef = useRef(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [nudgeElapsed, setNudgeElapsed] = useState(0);
+  const [nudgeRemaining, setNudgeRemaining] = useState(0);
+  const [showNudgeSheet, setShowNudgeSheet] = useState(false);
+  const nudgeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopTick = useCallback(() => {
     if (timerRef.current) {
@@ -86,6 +106,59 @@ export default function HomeScreen() {
     startTick(activeSession.startedAt);
     return () => stopTick();
   }, [activeSession, startTick, stopTick]);
+
+  useEffect(() => {
+    if (nudgeTimerRef.current) {
+      clearInterval(nudgeTimerRef.current);
+      nudgeTimerRef.current = null;
+    }
+    if (!activeNudge) {
+      setNudgeElapsed(0);
+      setNudgeRemaining(0);
+      return;
+    }
+    function tick() {
+      const now = Date.now();
+      const elapsed = Math.floor(
+        (now - new Date(activeNudge!.startedAt).getTime()) / 1000,
+      );
+      const remaining = Math.max(
+        0,
+        Math.floor((new Date(activeNudge!.endsAt).getTime() - now) / 1000),
+      );
+      setNudgeElapsed(elapsed);
+      setNudgeRemaining(remaining);
+    }
+    tick();
+    nudgeTimerRef.current = setInterval(tick, 1000);
+    return () => {
+      if (nudgeTimerRef.current) clearInterval(nudgeTimerRef.current);
+    };
+  }, [activeNudge]);
+
+  useEffect(() => {
+    function handleAppStateChange(next: AppStateStatus) {
+      if (next !== 'active') return;
+      if (!activeNudge) return;
+      const endsAt = new Date(activeNudge.endsAt);
+      if (endsAt > new Date()) return;
+      const ageHours = (Date.now() - endsAt.getTime()) / 3_600_000;
+      const abandonHours = settings.nudgeAbandonHours ?? 8;
+      if (ageHours >= abandonHours) {
+        void (async () => {
+          if (activeNudge.notificationId) {
+            await cancelReminderNotification(activeNudge.notificationId);
+          }
+          await clearActiveNudge();
+        })();
+      } else {
+        setShowNudgeSheet(true);
+      }
+    }
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    handleAppStateChange('active');
+    return () => sub.remove();
+  }, [activeNudge, settings.nudgeAbandonHours, clearActiveNudge]);
 
   useEffect(() => {
     if (isLoading || prefilledRef.current || activeSession) return;
@@ -142,6 +215,111 @@ export default function HomeScreen() {
         ? `Ordem ${team.order} · Meta ${team.maxWeeklyPercent}%`
         : `Ordem ${team.order}`,
   }));
+
+  async function endNudge() {
+    if (!activeNudge) return;
+    if (activeNudge.notificationId) {
+      await cancelReminderNotification(activeNudge.notificationId);
+    }
+    if (activeNudge.type === 'personal' && activeNudge.activityId) {
+      const todayStr = toLocalDateString(new Date());
+      const actualMinutes = Math.max(
+        1,
+        Math.round((Date.now() - new Date(activeNudge.startedAt).getTime()) / 60_000),
+      );
+      const existingPlan = personalDailyPlans.find((p) => p.date === todayStr);
+      if (existingPlan) {
+        const existing = existingPlan.entries.find(
+          (e) => e.activityId === activeNudge.activityId,
+        );
+        if (existing) {
+          await updatePersonalDailyPlans(
+            personalDailyPlans.map((p) =>
+              p.date === todayStr
+                ? {
+                    ...p,
+                    entries: p.entries.map((e) =>
+                      e.id === existing.id
+                        ? { ...e, done: true, status: 'done' as const }
+                        : e,
+                    ),
+                  }
+                : p,
+            ),
+          );
+        } else {
+          await updatePersonalDailyPlans(
+            personalDailyPlans.map((p) =>
+              p.date === todayStr
+                ? {
+                    ...p,
+                    entries: [
+                      ...p.entries,
+                      {
+                        id: `${todayStr}-${activeNudge.activityId}-nudge`,
+                        activityId: activeNudge.activityId!,
+                        plannedMinutes: actualMinutes,
+                        done: true,
+                        status: 'done' as const,
+                      },
+                    ],
+                  }
+                : p,
+            ),
+          );
+        }
+      } else {
+        await updatePersonalDailyPlans([
+          ...personalDailyPlans,
+          {
+            date: todayStr,
+            entries: [
+              {
+                id: `${todayStr}-${activeNudge.activityId}-nudge`,
+                activityId: activeNudge.activityId!,
+                plannedMinutes: actualMinutes,
+                done: true,
+                status: 'done' as const,
+              },
+            ],
+          },
+        ]);
+      }
+    } else if (activeNudge.type === 'work' && activeNudge.categoryId) {
+      const now = new Date();
+      const newSession: Session = {
+        id: Date.now().toString(),
+        categoryId: activeNudge.categoryId,
+        teamId: activeNudge.teamId ?? null,
+        startedAt: activeNudge.startedAt,
+        endedAt: now.toISOString(),
+        durationSeconds: Math.floor(
+          (now.getTime() - new Date(activeNudge.startedAt).getTime()) / 1000,
+        ),
+        note: null,
+      };
+      await updateSessions([...sessions, newSession]);
+    }
+    await clearActiveNudge();
+    setShowNudgeSheet(false);
+  }
+
+  async function extendNudge(extraSeconds: number) {
+    if (!activeNudge) return;
+    if (activeNudge.notificationId) {
+      await cancelReminderNotification(activeNudge.notificationId);
+    }
+    const newEndsAt = new Date(Date.now() + extraSeconds * 1000).toISOString();
+    const updated: ActiveNudge = {
+      ...activeNudge,
+      endsAt: newEndsAt,
+      extendCount: activeNudge.extendCount + 1,
+      notificationId: null,
+    };
+    const newNotifId = await scheduleNudgeNotification(updated);
+    await setActiveNudge({ ...updated, notificationId: newNotifId });
+    setShowNudgeSheet(false);
+  }
 
   async function handleStart() {
     if (!canStart || !selectedCategory) return;
@@ -302,6 +480,57 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Nudge section */}
+        {activeNudge ? (
+          <View style={styles.nudgeCard}>
+            <View style={styles.nudgeTopRow}>
+              <Text style={styles.nudgeBadge}>⏱ NUDGE ATIVO</Text>
+              <TouchableOpacity onPress={endNudge}>
+                <Text style={styles.nudgeStopBtn}>Encerrar</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.nudgeName}>{activeNudge.label}</Text>
+            <View style={styles.nudgeTimesRow}>
+              <View>
+                <Text style={styles.nudgeRemaining}>
+                  {formatDuration(nudgeRemaining)}
+                </Text>
+                <Text style={styles.nudgeRemainingLabel}>restantes</Text>
+              </View>
+              <View style={styles.nudgeTimesRight}>
+                <Text style={styles.nudgeElapsed}>
+                  {formatDuration(nudgeElapsed)} passados
+                </Text>
+                <Text style={styles.nudgeOf}>
+                  de {Math.round(activeNudge.durationSeconds / 60)} min
+                </Text>
+              </View>
+            </View>
+            <View style={styles.nudgeProgressBg}>
+              <View
+                style={[
+                  styles.nudgeProgressFill,
+                  {
+                    width: `${Math.min(
+                      100,
+                      (nudgeElapsed / activeNudge.durationSeconds) * 100,
+                    )}%`,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => router.push('/nudge-form')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.nudgeStartBtn}>
+              <Text style={styles.nudgeStartText}>⏱ Iniciar nudge de atividade</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Esta noite */}
         {(() => {
           const todayStr = toLocalDateString(new Date());
@@ -387,6 +616,43 @@ export default function HomeScreen() {
             </View>
           );
         })()}
+
+        {/* Nudge extend/end sheet */}
+        <Modal visible={showNudgeSheet} transparent animationType="slide">
+          <View style={styles.sheetOverlay}>
+            <View style={styles.sheet}>
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>⏱ Tempo encerrado</Text>
+                <Text style={styles.sheetSubtitle}>
+                  {activeNudge?.label} ·{' '}
+                  {Math.round((activeNudge?.durationSeconds ?? 0) / 60)} min
+                </Text>
+              </View>
+              <View style={styles.sheetOptions}>
+                <TouchableOpacity onPress={() => extendNudge(15 * 60)}>
+                  <View style={styles.sheetOptionExtend}>
+                    <Text style={styles.sheetOptionExtendText}>+ 15 minutos</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => extendNudge(30 * 60)}>
+                  <View style={styles.sheetOptionExtend}>
+                    <Text style={styles.sheetOptionExtendText}>+ 30 minutos</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => extendNudge(60 * 60)}>
+                  <View style={styles.sheetOptionExtend}>
+                    <Text style={styles.sheetOptionExtendText}>+ 60 minutos</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={endNudge}>
+                  <View style={styles.sheetOptionEnd}>
+                    <Text style={styles.sheetOptionEndText}>Encerrar atividade</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Note modal */}
         <Modal visible={noteModalVisible} transparent animationType="slide">
@@ -683,5 +949,150 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  nudgeCard: {
+    backgroundColor: colors.amberCard,
+    borderWidth: 1,
+    borderColor: colors.amberBorder,
+    borderRadius: 18,
+    padding: 16,
+    gap: 10,
+  },
+  nudgeTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nudgeBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.amberDim,
+    letterSpacing: 0.6,
+  },
+  nudgeStopBtn: {
+    fontSize: 11,
+    color: colors.amberDim,
+    borderWidth: 1,
+    borderColor: colors.amberBorder,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontWeight: '600',
+  },
+  nudgeName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.amberText,
+  },
+  nudgeTimesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  nudgeTimesRight: {
+    alignItems: 'flex-end',
+  },
+  nudgeRemaining: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.amberText,
+  },
+  nudgeRemainingLabel: {
+    fontSize: 10,
+    color: colors.amberDim,
+  },
+  nudgeElapsed: {
+    fontSize: 11,
+    color: colors.amberDim,
+  },
+  nudgeOf: {
+    fontSize: 10,
+    color: colors.amberBorder,
+  },
+  nudgeProgressBg: {
+    height: 4,
+    backgroundColor: colors.amberBorder,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  nudgeProgressFill: {
+    height: '100%',
+    backgroundColor: colors.amber,
+    borderRadius: 2,
+  },
+  nudgeStartBtn: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.amberDim,
+    backgroundColor: colors.amberCard,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nudgeStartText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.amber,
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+    padding: 12,
+    paddingBottom: 24,
+  },
+  sheet: {
+    backgroundColor: colors.cardFrom,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    overflow: 'hidden',
+  },
+  sheetHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.cardBorder,
+    alignItems: 'center',
+    gap: 4,
+  },
+  sheetTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sheetSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  sheetOptions: {
+    padding: 12,
+    gap: 8,
+  },
+  sheetOptionExtend: {
+    backgroundColor: colors.amberCard,
+    borderWidth: 1,
+    borderColor: colors.amberBorder,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  sheetOptionExtendText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.amberText,
+  },
+  sheetOptionEnd: {
+    backgroundColor: '#1f0a0a',
+    borderWidth: 1,
+    borderColor: '#3a1010',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  sheetOptionEndText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ff7070',
   },
 });
