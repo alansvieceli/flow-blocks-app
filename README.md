@@ -10,11 +10,12 @@ locally on the device with no backend, sync, authentication, or paid services.
 
 - Four main tabs: Início, Painel, Lembretes, and Mais.
 - Flow Blocks has custom launch branding: installed app icons use a white-background cascading-blocks mark, and the splash screen uses the same logo identity as the in-app header.
-- Início: start/stop work sessions by selecting a registered category and team from list pickers, see today's work summary, active session state, and a compact tonight plan shortcut.
+- Início: start/stop work sessions by selecting a registered category and team from list pickers, see today's work summary, active session state, start an activity nudge, and open a compact tonight plan shortcut.
 - Painel: weekly category/team metrics, hourly heatmap, streak, context-switch counts, team-balance alerts, and personal activity chart.
 - Lembretes: create, edit, delete, and schedule local reminders.
 - Mais: access Equipes, Categorias, Histórico, Atividades, Template semanal, and Configurações.
 - Active work sessions show a running banner above the tab bar from every tab.
+- Activity nudges can be started for personal or work activities, notify after a chosen duration, and can be extended or ended; ending saves time into the personal daily plan or work sessions.
 - Core local data is loaded through a shared app data provider to reduce tab flicker.
 - Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 - New installs start with category defaults `Reunião` and `Foco`, and personal activity defaults `Video Game` and `Estudo`; users can edit, order, or remove categories and teams.
@@ -74,13 +75,19 @@ The app stores data in AsyncStorage on the device:
 - `categories` ordered by a numeric `order` field
 - `sessions`
 - `active_session`
+- `active_nudge`
 - `reminders`
 - `settings`
 - `personalActivities`
 - `personalWeeklyTemplate`
 - `personalDailyPlan`
 
-Calendar-based summaries use the device's local date and time.
+Calendar-based summaries use the device's local date and time. Settings control
+notification preference, data retention in months, and how long an expired nudge
+can wait before being discarded as abandoned. Sessions, reminders, and personal
+daily plans are pruned according to the retention setting when app data is loaded
+or updated. The Settings screen also provides a reset action that clears local
+app data and cancels scheduled notifications.
 
 ## Project Workflow
 
