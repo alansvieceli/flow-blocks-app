@@ -4,6 +4,9 @@ export interface AppSettings {
   notificationsEnabled: boolean;
   historyMonths: number;
   nudgeAbandonHours: number;
+  workStartHour: number;
+  workEndHour: number;
+  lunchDurationMinutes: number;
 }
 
 const KEY = 'appSettings';
@@ -12,6 +15,9 @@ const DEFAULTS: AppSettings = {
   notificationsEnabled: true,
   historyMonths: 4,
   nudgeAbandonHours: 8,
+  workStartHour: 8,
+  workEndHour: 18,
+  lunchDurationMinutes: 60,
 };
 
 export async function getSettings(): Promise<AppSettings> {

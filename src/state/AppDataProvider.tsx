@@ -89,6 +89,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   notificationsEnabled: true,
   historyMonths: 4,
   nudgeAbandonHours: 8,
+  workStartHour: 8,
+  workEndHour: 18,
+  lunchDurationMinutes: 60,
 };
 
 function cutoffDate(months: number): Date {
