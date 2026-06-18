@@ -211,7 +211,7 @@ export default function DayPlanScreen() {
     <View style={styles.container}>
       <ScreenHeader
         title={displayDate}
-        titleIcon={isToday ? 'moon-outline' : undefined}
+        titleIcon={isToday ? 'leaf-outline' : undefined}
         subtitle={preFilled ? 'Pré-preenchido do template' : undefined}
         backTo="/(tabs)/"
       />

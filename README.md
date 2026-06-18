@@ -15,7 +15,7 @@ locally on the device with no backend, sync, authentication, or paid services.
 - Lembretes: create, edit, delete, and schedule local reminders at the first instant of the selected minute.
 - Mais: access Equipes, Categorias, Histórico, Atividades, Template semanal, and Configurações.
 - Active work sessions show a running banner above the tab bar from every tab.
-- Activity nudges can be started for personal or work activities, notify at the first instant of the target minute, and can be extended or ended; ending saves time into the personal daily plan or work sessions.
+- Activity nudges can be started for personal or work activities, notify at the first instant of the target minute, and can be extended or ended; ending saves the selected/extended duration into the personal daily plan or work sessions.
 - Core local data is loaded through a shared app data provider to reduce tab flicker.
 - Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 - New installs start with category defaults `Reunião` and `Foco`, and personal activity defaults `Video Game` and `Estudo`; users can edit, order, or remove categories and teams.
@@ -90,8 +90,10 @@ or updated. The Settings screen also provides a reset action that clears local
 app data and cancels scheduled notifications.
 
 On Android, the notification tray icon is configured through `expo-notifications`
-with `assets/notification-icon.png` and the Flow Blocks accent tint. This requires
-a rebuilt native app binary to appear on device.
+with `assets/notification-icon.png` and the Flow Blocks accent tint. Android
+builds also declare `SCHEDULE_EXACT_ALARM` so date-based reminders and nudges can
+fire at the intended minute on Android 12+. These native notification settings
+require a rebuilt app binary to appear on device.
 
 ## Project Workflow
 

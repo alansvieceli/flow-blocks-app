@@ -85,8 +85,10 @@ Extending does not save time. Only ending triggers a save.
 
 Upserts into today's `personalDailyPlan`:
 
-- **Entry exists for this `activityId`:** marks `done: true`, `status: 'done'`. Does not change `plannedMinutes`.
-- **No entry exists:** inserts a new entry with `plannedMinutes = Math.round((Date.now() - new Date(startedAt).getTime()) / 60000)`, `done: true`, `status: 'done'`.
+- **Entry exists for this `activityId`:** adds the nudge's selected duration in minutes to `plannedMinutes`, then marks `done: true`, `status: 'done'`.
+- **No entry exists:** inserts a new entry with `plannedMinutes = Math.round(durationSeconds / 60)`, `done: true`, `status: 'done'`.
+
+Personal nudges save the selected/extended nudge duration, not the wall-clock time until the user taps "Encerrar". Extending a nudge increases `durationSeconds` by the extension amount so the final saved personal time reflects the full committed duration.
 
 Uses the existing `updatePersonalDailyPlans` path. No schema changes required.
 

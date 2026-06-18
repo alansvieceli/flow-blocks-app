@@ -3,6 +3,7 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   AppState,
   AppStateStatus,
   Modal,
@@ -18,6 +19,7 @@ import { formatDuration } from '../../src/lib/formatDuration';
 import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
 import { normalizeNotificationDateToMinute } from '../../src/lib/notificationTime';
+import { applyPersonalNudgeToDailyPlans } from '../../src/lib/personalNudge';
 import {
   cancelReminderNotification,
   scheduleNudgeNotification,
@@ -129,6 +131,9 @@ export default function HomeScreen() {
       );
       setNudgeElapsed(elapsed);
       setNudgeRemaining(remaining);
+      if (remaining === 0) {
+        setShowNudgeSheet(true);
+      }
     }
     tick();
     nudgeTimerRef.current = setInterval(tick, 1000);
@@ -224,68 +229,16 @@ export default function HomeScreen() {
     }
     if (activeNudge.type === 'personal' && activeNudge.activityId) {
       const todayStr = toLocalDateString(new Date());
-      const actualMinutes = Math.max(
-        1,
-        Math.round((Date.now() - new Date(activeNudge.startedAt).getTime()) / 60_000),
+      const actualElapsedSeconds = Math.floor(
+        (Date.now() - new Date(activeNudge.startedAt).getTime()) / 1000,
       );
-      const existingPlan = personalDailyPlans.find((p) => p.date === todayStr);
-      if (existingPlan) {
-        const existing = existingPlan.entries.find(
-          (e) => e.activityId === activeNudge.activityId,
-        );
-        if (existing) {
-          await updatePersonalDailyPlans(
-            personalDailyPlans.map((p) =>
-              p.date === todayStr
-                ? {
-                    ...p,
-                    entries: p.entries.map((e) =>
-                      e.id === existing.id
-                        ? { ...e, done: true, status: 'done' as const }
-                        : e,
-                    ),
-                  }
-                : p,
-            ),
-          );
-        } else {
-          await updatePersonalDailyPlans(
-            personalDailyPlans.map((p) =>
-              p.date === todayStr
-                ? {
-                    ...p,
-                    entries: [
-                      ...p.entries,
-                      {
-                        id: `${todayStr}-${activeNudge.activityId}-nudge`,
-                        activityId: activeNudge.activityId!,
-                        plannedMinutes: actualMinutes,
-                        done: true,
-                        status: 'done' as const,
-                      },
-                    ],
-                  }
-                : p,
-            ),
-          );
-        }
-      } else {
-        await updatePersonalDailyPlans([
-          ...personalDailyPlans,
-          {
-            date: todayStr,
-            entries: [
-              {
-                id: `${todayStr}-${activeNudge.activityId}-nudge`,
-                activityId: activeNudge.activityId!,
-                plannedMinutes: actualMinutes,
-                done: true,
-                status: 'done' as const,
-              },
-            ],
-          },
-        ]);
-      }
+      await updatePersonalDailyPlans(
+        applyPersonalNudgeToDailyPlans(
+          personalDailyPlans,
+          { ...activeNudge, durationSeconds: actualElapsedSeconds },
+          todayStr,
+        ),
+      );
     } else if (activeNudge.type === 'work' && activeNudge.categoryId) {
       const now = new Date();
       const newSession: Session = {
@@ -315,11 +268,19 @@ export default function HomeScreen() {
     ).toISOString();
     const updated: ActiveNudge = {
       ...activeNudge,
+      durationSeconds: activeNudge.durationSeconds + extraSeconds,
       endsAt: newEndsAt,
       extendCount: activeNudge.extendCount + 1,
       notificationId: null,
     };
     const newNotifId = await scheduleNudgeNotification(updated);
+    if (!newNotifId) {
+      Alert.alert(
+        'Não foi possível reagendar',
+        'O nudge continua ativo no horário anterior porque a nova notificação não pôde ser agendada.',
+      );
+      return;
+    }
     await setActiveNudge({ ...updated, notificationId: newNotifId });
     setShowNudgeSheet(false);
   }
@@ -562,8 +523,8 @@ export default function HomeScreen() {
                 style={styles.tonightHeaderRow}
               >
                 <View style={styles.tonightHeaderLeft}>
-                  <Ionicons name="moon-outline" size={14} color={colors.emerald} />
-                  <Text style={styles.tonightLabel}>ESTA NOITE — PLANO PESSOAL</Text>
+                  <Ionicons name="leaf-outline" size={14} color={colors.emerald} />
+                  <Text style={styles.tonightLabel}>PLANO PESSOAL</Text>
                 </View>
                 {entries.length > 0 && (
                   <Text style={styles.tonightCount}>

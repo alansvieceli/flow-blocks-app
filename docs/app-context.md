@@ -60,11 +60,11 @@ Common tab data is loaded through a shared React provider (`AppDataProvider`) so
 
 ## Activity Nudge
 
-The Home screen includes an amber activity nudge entry point. A nudge can be personal or work-related, has a selected duration, respects the app notification toggle, requires notification permission before starting, schedules a local notification for its end time, and shows countdown/progress while active. Notification times are normalized to the first instant of the selected minute (`HH:mm:00.000`) before being saved or passed to Expo. When time is up, the user can extend it by a preset duration or end it. Ending a personal nudge marks/adds today's personal plan entry as done; ending a work nudge creates a recorded work session. Stale nudges are discarded automatically after `settings.nudgeAbandonHours`.
+The Home screen includes an amber activity nudge entry point. A nudge can be personal or work-related, has a selected duration, respects the app notification toggle, requires notification permission before starting, schedules a local notification for its end time, and shows countdown/progress while active. Notification times are normalized to the first instant of the selected minute (`HH:mm:00.000`) before being saved or passed to Expo. When time is up, the user can extend it by a preset duration or end it. Ending a personal nudge adds the selected/extended nudge duration to today's matching personal plan entry and marks it done, or creates a done entry when none exists; ending a work nudge creates a recorded work session. Stale nudges are discarded automatically after `settings.nudgeAbandonHours`.
 
 ## Branding
 
-Flow Blocks uses a cascading-blocks logo built from the app accent gradient. The same identity appears in the app header, white-background installed app icons, Android adaptive icon, favicon, centered dark splash screen logo, and Android notification tray icon. The notification icon is a white transparent PNG configured through `expo-notifications` and tinted with the Flow Blocks accent color.
+Flow Blocks uses a cascading-blocks logo built from the app accent gradient. The same identity appears in the app header, white-background installed app icons, Android adaptive icon, favicon, centered dark splash screen logo, and Android notification tray icon. The notification icon is a white transparent PNG configured through `expo-notifications` and tinted with the Flow Blocks accent color. Android builds declare `SCHEDULE_EXACT_ALARM` so reminder and nudge notifications scheduled for an exact date can fire at the intended minute on Android 12+.
 
 ## Current Workflow
 
