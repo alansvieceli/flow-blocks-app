@@ -14,6 +14,12 @@ import {
   setActiveSession as persistActiveSession,
   subscribeActiveSession,
 } from '../storage/activeSessionStorage';
+import {
+  clearActiveNudge,
+  getActiveNudge,
+  setActiveNudge as persistActiveNudge,
+  subscribeActiveNudge,
+} from '../storage/activeNudgeStorage';
 import { getCategories, saveCategories } from '../storage/categoriesStorage';
 import {
   getPersonalActivities,
@@ -29,6 +35,7 @@ import { AppSettings, getSettings, saveSettings } from '../storage/settingsStora
 import { getTeams, saveTeams } from '../storage/teamsStorage';
 import { cancelAllNotifications } from '../lib/notifications';
 import {
+  ActiveNudge,
   ActiveSession,
   Category,
   PersonalActivity,
@@ -41,6 +48,7 @@ import {
 import { sortByOrder } from '../lib/sortByOrder';
 
 interface AppDataState {
+  activeNudge: ActiveNudge | null;
   activeSession: ActiveSession | null;
   categories: Category[];
   error: string | null;
@@ -56,6 +64,8 @@ interface AppDataState {
 }
 
 interface AppDataContextValue extends AppDataState {
+  clearActiveNudge: () => Promise<void>;
+  setActiveNudge: (nudge: ActiveNudge) => Promise<void>;
   clearActiveSession: () => Promise<void>;
   refreshAll: () => Promise<void>;
   resetAll: () => Promise<void>;
@@ -103,6 +113,7 @@ function pruneRemindersByRetention(reminders: Reminder[], months: number): Remin
 }
 
 const ALL_STORAGE_KEYS = [
+  'active_nudge',
   'teams',
   'sessions',
   'categories',
@@ -122,6 +133,7 @@ async function loadAppData(): Promise<
     teams,
     sessions,
     activeSession,
+    activeNudge,
     categories,
     reminders,
     settings,
@@ -132,6 +144,7 @@ async function loadAppData(): Promise<
     getTeams(),
     getSessions(),
     getActiveSession(),
+    getActiveNudge(),
     getCategories(),
     getReminders(),
     getSettings(),
@@ -154,6 +167,7 @@ async function loadAppData(): Promise<
   if (saves.length > 0) await Promise.all(saves);
 
   return {
+    activeNudge,
     activeSession,
     categories,
     personalActivities,
@@ -168,6 +182,7 @@ async function loadAppData(): Promise<
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppDataState>({
+    activeNudge: null,
     activeSession: null,
     categories: [],
     error: null,
@@ -209,15 +224,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refreshAll();
-    const unsubscribe = subscribeActiveSession((activeSession) => {
+    const unsubSession = subscribeActiveSession((activeSession) => {
       setState((current) => ({ ...current, activeSession }));
     });
-    return unsubscribe;
+    const unsubNudge = subscribeActiveNudge((activeNudge) => {
+      setState((current) => ({ ...current, activeNudge }));
+    });
+    return () => {
+      unsubSession();
+      unsubNudge();
+    };
   }, [refreshAll]);
 
   const value = useMemo<AppDataContextValue>(
     () => ({
       ...state,
+      clearActiveNudge: async () => {
+        setState((current) => ({ ...current, activeNudge: null }));
+        await clearActiveNudge();
+      },
+      setActiveNudge: async (activeNudge) => {
+        setState((current) => ({ ...current, activeNudge }));
+        await persistActiveNudge(activeNudge);
+      },
       clearActiveSession: async () => {
         setState((current) => ({ ...current, activeSession: null }));
         await clearActiveSession();
