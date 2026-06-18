@@ -6,6 +6,9 @@ import {
   getTeamBalanceAlerts,
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
+  WorkSchedule,
+  getDayAvailableMinutes,
+  getWorkEfficiency,
 } from '../metrics';
 import { Session, Team } from '../../types';
 
@@ -379,5 +382,68 @@ describe('getDailyMetrics', () => {
     });
     const result = getDailyMetrics([s1, s2, s3], [TEAM_A, TEAM_B, TEAM_C], TODAY);
     expect(result.topTeams).toHaveLength(2);
+  });
+});
+
+// ── WorkSchedule helpers ────────────────────────────────────────────────────
+
+const SCHEDULE: WorkSchedule = {
+  workStartHour: 8,
+  workEndHour: 18,
+  lunchDurationMinutes: 60,
+};
+
+describe('getDayAvailableMinutes', () => {
+  it('returns (end - start) * 60 - lunch', () => {
+    expect(getDayAvailableMinutes(SCHEDULE)).toBe(540); // (18-8)*60 - 60
+  });
+
+  it('handles short schedule', () => {
+    expect(
+      getDayAvailableMinutes({
+        workStartHour: 9,
+        workEndHour: 13,
+        lunchDurationMinutes: 0,
+      }),
+    ).toBe(240);
+  });
+});
+
+describe('getWorkEfficiency', () => {
+  it('returns zero worked and full available when no sessions on a weekday', () => {
+    const result = getWorkEfficiency([], SCHEDULE, TODAY);
+    expect(result.todayWorkedMinutes).toBe(0);
+    expect(result.todayAvailableMinutes).toBe(540);
+    expect(result.todayIdleMinutes).toBe(540);
+  });
+
+  it('returns zero available when today is a weekend', () => {
+    const saturday = new Date('2026-06-20T12:00:00.000Z');
+    const result = getWorkEfficiency([], SCHEDULE, saturday);
+    expect(result.todayAvailableMinutes).toBe(0);
+    expect(result.todayIdleMinutes).toBe(0);
+  });
+
+  it('clamps idle to 0 when sessions exceed available', () => {
+    const longSession = makeSession({
+      startedAt: '2026-06-16T06:00:00.000Z',
+      durationSeconds: 600 * 60,
+    });
+    const result = getWorkEfficiency([longSession], SCHEDULE, TODAY);
+    expect(result.todayIdleMinutes).toBe(0);
+  });
+
+  it('correctly counts week available only for weekdays up to today', () => {
+    // TODAY = Tuesday 2026-06-16. Week started Monday 2026-06-15.
+    // 2 weekdays: Mon + Tue = 2 * 540 = 1080 min available.
+    const result = getWorkEfficiency([], SCHEDULE, TODAY);
+    expect(result.weekAvailableMinutes).toBe(1080);
+  });
+
+  it('subtracts worked minutes from weekly idle', () => {
+    // SESSION_MON_FOCUS: 60 min on Monday 2026-06-15
+    const result = getWorkEfficiency([SESSION_MON_FOCUS], SCHEDULE, TODAY);
+    expect(result.weekWorkedMinutes).toBe(60);
+    expect(result.weekIdleMinutes).toBe(1020); // 1080 - 60
   });
 });

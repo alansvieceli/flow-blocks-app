@@ -2,6 +2,21 @@ import { Session, Team } from '../types';
 import { isFocusCategory } from './categories';
 import { getLocalWeekEnd, getLocalWeekStart, toLocalDateString } from './localDate';
 
+export interface WorkSchedule {
+  workStartHour: number;
+  workEndHour: number;
+  lunchDurationMinutes: number;
+}
+
+export interface WorkEfficiency {
+  todayWorkedMinutes: number;
+  todayAvailableMinutes: number;
+  todayIdleMinutes: number;
+  weekWorkedMinutes: number;
+  weekAvailableMinutes: number;
+  weekIdleMinutes: number;
+}
+
 export interface CategoryMetrics {
   deepWorkMinutes: number;
   interruptionMinutes: number;
@@ -235,4 +250,52 @@ export function getDailyMetrics(
     .slice(0, 2);
 
   return { totalMinutes, topTeams };
+}
+
+export function getDayAvailableMinutes(schedule: WorkSchedule): number {
+  return (
+    (schedule.workEndHour - schedule.workStartHour) * 60 - schedule.lunchDurationMinutes
+  );
+}
+
+function getDayWorkedMinutes(sessions: Session[], dateStr: string): number {
+  return sessions
+    .filter((s) => toLocalDateString(new Date(s.startedAt)) === dateStr)
+    .reduce((acc, s) => acc + sessionMinutes(s), 0);
+}
+
+export function getWorkEfficiency(
+  sessions: Session[],
+  schedule: WorkSchedule,
+  today: Date,
+): WorkEfficiency {
+  const todayStr = toLocalDateString(today);
+  const todayDow = today.getDay();
+  const isTodayWeekday = todayDow !== 0 && todayDow !== 6;
+  const todayAvailableMinutes = isTodayWeekday ? getDayAvailableMinutes(schedule) : 0;
+  const todayWorkedMinutes = getDayWorkedMinutes(sessions, todayStr);
+  const todayIdleMinutes = Math.max(0, todayAvailableMinutes - todayWorkedMinutes);
+
+  const weekStart = getLocalWeekStart(today);
+  let weekWorkedMinutes = 0;
+  let weekAvailableMinutes = 0;
+  const cursor = new Date(weekStart);
+  while (cursor <= today) {
+    const dow = cursor.getDay();
+    if (dow !== 0 && dow !== 6) {
+      weekAvailableMinutes += getDayAvailableMinutes(schedule);
+      weekWorkedMinutes += getDayWorkedMinutes(sessions, toLocalDateString(cursor));
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  const weekIdleMinutes = Math.max(0, weekAvailableMinutes - weekWorkedMinutes);
+
+  return {
+    todayWorkedMinutes,
+    todayAvailableMinutes,
+    todayIdleMinutes,
+    weekWorkedMinutes,
+    weekAvailableMinutes,
+    weekIdleMinutes,
+  };
 }
