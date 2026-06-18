@@ -67,6 +67,7 @@ export default function ManualEntryScreen() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [activityId, setActivityId] = useState<string | null>(null);
+  const [note, setNote] = useState('');
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const teamRequired = teams.length > 0;
@@ -132,7 +133,7 @@ export default function ManualEntryScreen() {
           startedAt,
           endedAt,
           durationSeconds,
-          note: null,
+          note: note.trim() || null,
         };
         await appendSession(newSession);
       } else {
@@ -354,6 +355,20 @@ export default function ManualEntryScreen() {
           />
         )}
 
+        {/* Comentário */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>COMENTÁRIO</Text>
+          <TextInput
+            style={styles.noteInput}
+            placeholder="Opcional"
+            placeholderTextColor={colors.textSecondary}
+            value={note}
+            onChangeText={setNote}
+            multiline
+            maxLength={300}
+          />
+        </View>
+
         {/* Salvar */}
         <TouchableOpacity onPress={handleSave} disabled={!canSave} activeOpacity={0.8}>
           <View style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}>
@@ -484,6 +499,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  noteInput: {
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.textPrimary,
+    backgroundColor: colors.inputBackground,
+    minHeight: 72,
+    textAlignVertical: 'top',
   },
   saveBtn: {
     borderRadius: 12,
