@@ -216,11 +216,11 @@ function HeatmapSection({
           <TouchableOpacity onPress={() => setSelectedTeamId(null)} activeOpacity={0.8}>
             {selectedTeamId === null ? (
               <View style={styles.chip}>
-                <Text style={styles.chipActiveText}>Todas as equipes</Text>
+                <Text style={styles.chipActiveText}>Todas</Text>
               </View>
             ) : (
               <View style={styles.chipInactive}>
-                <Text style={styles.chipInactiveText}>Todas as equipes</Text>
+                <Text style={styles.chipInactiveText}>Todas</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -256,11 +256,11 @@ function HeatmapSection({
           >
             {selectedCategoryId === null ? (
               <View style={styles.chip}>
-                <Text style={styles.chipActiveText}>Todas as categorias</Text>
+                <Text style={styles.chipActiveText}>Todas</Text>
               </View>
             ) : (
               <View style={styles.chipInactive}>
-                <Text style={styles.chipInactiveText}>Todas as categorias</Text>
+                <Text style={styles.chipInactiveText}>Todas</Text>
               </View>
             )}
           </TouchableOpacity>
