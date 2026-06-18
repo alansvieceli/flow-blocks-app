@@ -546,12 +546,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.cardBorder,
   },
   totalLabel: {
-    fontSize: 12,
+    ...typography.body,
     color: colors.textSecondary,
   },
   totalValue: {
-    fontSize: 18,
-    fontWeight: '800',
+    ...typography.screenTitle,
     color: colors.textPrimary,
   },
   metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
