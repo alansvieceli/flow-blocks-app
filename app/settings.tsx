@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import {
   Alert,
   Pressable,
@@ -125,6 +126,9 @@ export default function SettingsScreen() {
             </View>
           </Pressable>
         </View>
+        <Text style={styles.versionLabel}>
+          Flow Blocks v{Constants.expoConfig?.version ?? '—'}
+        </Text>
       </ScrollView>
     </View>
   );
@@ -158,4 +162,11 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 15, color: colors.textPrimary },
   dangerLabel: { fontSize: 15, color: colors.destructiveFrom },
   rowSublabel: { fontSize: 12, color: colors.textSecondary },
+  versionLabel: {
+    fontSize: 12,
+    color: colors.textDisabled,
+    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 8,
+  },
 });
