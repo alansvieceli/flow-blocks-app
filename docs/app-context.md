@@ -64,7 +64,7 @@ The Home screen includes an amber activity nudge entry point. A nudge can be per
 
 ## Branding
 
-Flow Blocks uses a cascading-blocks logo built from the app accent gradient. The same identity appears in the app header, white-background installed app icons, Android adaptive icon, favicon, and centered dark splash screen logo.
+Flow Blocks uses a cascading-blocks logo built from the app accent gradient. The same identity appears in the app header, white-background installed app icons, Android adaptive icon, favicon, centered dark splash screen logo, and Android notification tray icon. The notification icon is a white transparent PNG configured through `expo-notifications` and tinted with the Flow Blocks accent color.
 
 ## Current Workflow
 
