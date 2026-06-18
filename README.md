@@ -12,10 +12,10 @@ locally on the device with no backend, sync, authentication, or paid services.
 - Flow Blocks has custom launch branding: installed app icons use a white-background cascading-blocks mark, Android notifications use a white transparent version of the same mark, and the splash screen uses the same logo identity as the in-app header.
 - Início: start/stop work sessions by selecting a registered category and team from list pickers, see today's work summary, active session state, start an activity nudge, and open a compact tonight plan shortcut.
 - Painel: weekly category/team metrics, hourly heatmap, streak, context-switch counts, team-balance alerts, and personal activity chart.
-- Lembretes: create, edit, delete, and schedule local reminders.
+- Lembretes: create, edit, delete, and schedule local reminders at the first instant of the selected minute.
 - Mais: access Equipes, Categorias, Histórico, Atividades, Template semanal, and Configurações.
 - Active work sessions show a running banner above the tab bar from every tab.
-- Activity nudges can be started for personal or work activities, notify after a chosen duration, and can be extended or ended; ending saves time into the personal daily plan or work sessions.
+- Activity nudges can be started for personal or work activities, notify at the first instant of the target minute, and can be extended or ended; ending saves time into the personal daily plan or work sessions.
 - Core local data is loaded through a shared app data provider to reduce tab flicker.
 - Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 - New installs start with category defaults `Reunião` and `Foco`, and personal activity defaults `Video Game` and `Estudo`; users can edit, order, or remove categories and teams.

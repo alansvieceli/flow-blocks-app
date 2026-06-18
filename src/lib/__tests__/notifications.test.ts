@@ -57,6 +57,10 @@ describe('scheduleReminderNotification', () => {
         content: expect.objectContaining({ title: 'Test reminder' }),
       }),
     );
+    const calls = ExpoNotifications.scheduleNotificationAsync.mock.calls;
+    const scheduled = calls[calls.length - 1][0];
+    expect(scheduled.trigger.date.getSeconds()).toBe(0);
+    expect(scheduled.trigger.date.getMilliseconds()).toBe(0);
   });
 
   it('returns null when scheduling throws', async () => {
@@ -92,6 +96,10 @@ describe('scheduleNudgeNotification', () => {
         content: expect.objectContaining({ title: 'Video Game' }),
       }),
     );
+    const calls = ExpoNotifications.scheduleNotificationAsync.mock.calls;
+    const scheduled = calls[calls.length - 1][0];
+    expect(scheduled.trigger.date.getSeconds()).toBe(0);
+    expect(scheduled.trigger.date.getMilliseconds()).toBe(0);
   });
 
   it('returns null when endsAt is in the past', async () => {

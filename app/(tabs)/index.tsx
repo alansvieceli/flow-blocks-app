@@ -17,6 +17,7 @@ import { OptionPicker } from '../../src/components/common';
 import { formatDuration } from '../../src/lib/formatDuration';
 import { toLocalDateString } from '../../src/lib/localDate';
 import { getDailyMetrics } from '../../src/lib/metrics';
+import { normalizeNotificationDateToMinute } from '../../src/lib/notificationTime';
 import {
   cancelReminderNotification,
   scheduleNudgeNotification,
@@ -309,7 +310,9 @@ export default function HomeScreen() {
     if (activeNudge.notificationId) {
       await cancelReminderNotification(activeNudge.notificationId);
     }
-    const newEndsAt = new Date(Date.now() + extraSeconds * 1000).toISOString();
+    const newEndsAt = normalizeNotificationDateToMinute(
+      new Date(Date.now() + extraSeconds * 1000),
+    ).toISOString();
     const updated: ActiveNudge = {
       ...activeNudge,
       endsAt: newEndsAt,

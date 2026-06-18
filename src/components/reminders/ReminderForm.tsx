@@ -17,6 +17,7 @@ import {
   requestNotificationPermission,
   scheduleReminderNotification,
 } from '../../lib/notifications';
+import { normalizeNotificationDateToMinute } from '../../lib/notificationTime';
 import { useAppData } from '../../state/AppDataProvider';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -30,7 +31,7 @@ interface ReminderFormProps {
 function getDefaultDate() {
   const d = new Date();
   d.setMinutes(d.getMinutes() + 60);
-  return d;
+  return normalizeNotificationDateToMinute(d);
 }
 
 function formatDate(d: Date): string {
@@ -87,8 +88,9 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
 
   function validate(): boolean {
     const nextErrors: typeof errors = {};
+    const notificationDate = normalizeNotificationDateToMinute(date);
     if (!title.trim()) nextErrors.title = 'O título é obrigatório.';
-    if (date.getTime() <= Date.now()) {
+    if (notificationDate.getTime() <= Date.now()) {
       nextErrors.datetime = 'A data/hora deve ser no futuro.';
     }
     setErrors(nextErrors);
@@ -100,6 +102,7 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
 
     const reminderIdToSave = existingReminder?.id ?? Date.now().toString();
     let notificationId: string | null = existingReminder?.notificationId ?? null;
+    const notificationDate = normalizeNotificationDateToMinute(date);
 
     if (settings.notificationsEnabled) {
       const granted = await requestNotificationPermission();
@@ -114,7 +117,7 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
           id: reminderIdToSave,
           title: title.trim(),
           description: description.trim() || null,
-          datetime: date.toISOString(),
+          datetime: notificationDate.toISOString(),
         });
       }
     } else if (existingReminder?.notificationId) {
@@ -126,7 +129,7 @@ export function ReminderForm({ reminderId, onClose }: ReminderFormProps) {
       id: reminderIdToSave,
       title: title.trim(),
       description: description.trim() || null,
-      datetime: date.toISOString(),
+      datetime: notificationDate.toISOString(),
       categoryId,
       teamId,
       notificationId,

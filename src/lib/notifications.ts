@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { ActiveNudge, Reminder } from '../types';
+import { normalizeNotificationDateToMinute } from './notificationTime';
 
 const DEFAULT_CHANNEL_ID = 'default';
 
@@ -50,7 +51,7 @@ export async function scheduleReminderNotification(
 ): Promise<string | null> {
   if (!ExpoNotifications) return null;
   try {
-    const trigger = new Date(reminder.datetime);
+    const trigger = normalizeNotificationDateToMinute(new Date(reminder.datetime));
     if (trigger.getTime() <= Date.now()) return null;
     await ensureAndroidNotificationChannel();
     const notificationId = await ExpoNotifications.scheduleNotificationAsync({
@@ -77,7 +78,7 @@ export async function scheduleNudgeNotification(
 ): Promise<string | null> {
   if (!ExpoNotifications) return null;
   try {
-    const trigger = new Date(nudge.endsAt);
+    const trigger = normalizeNotificationDateToMinute(new Date(nudge.endsAt));
     if (trigger.getTime() <= Date.now()) return null;
     await ensureAndroidNotificationChannel();
     const notificationId = await ExpoNotifications.scheduleNotificationAsync({

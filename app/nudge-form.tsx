@@ -14,6 +14,7 @@ import {
   requestNotificationPermission,
   scheduleNudgeNotification,
 } from '../src/lib/notifications';
+import { normalizeNotificationDateToMinute } from '../src/lib/notificationTime';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -88,6 +89,9 @@ export default function NudgeFormScreen() {
     }
 
     const now = new Date();
+    const endsAt = normalizeNotificationDateToMinute(
+      new Date(now.getTime() + durationSeconds * 1000),
+    );
     const nudge: ActiveNudge = {
       id: Date.now().toString(),
       label: buildLabel(),
@@ -97,7 +101,7 @@ export default function NudgeFormScreen() {
       categoryId: type === 'work' ? (categoryId ?? undefined) : undefined,
       startedAt: now.toISOString(),
       durationSeconds,
-      endsAt: new Date(now.getTime() + durationSeconds * 1000).toISOString(),
+      endsAt: endsAt.toISOString(),
       notificationId: null,
       extendCount: 0,
     };
