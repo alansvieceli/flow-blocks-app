@@ -5,15 +5,12 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { toLocalDateString } from '../../src/lib/localDate';
 import {
   CategoryMetrics,
-  TeamBalanceAlert,
   TeamMetrics,
   WorkEfficiency,
   WorkSchedule,
   getDailyMetrics,
-  getContextSwitches,
   getHeatmapData,
   getStreak,
-  getTeamBalanceAlerts,
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
   getWorkEfficiency,
@@ -82,16 +79,13 @@ function MetricBar({
 function WeeklySection({
   categoryMetrics,
   teamMetrics,
-  alerts,
   weekIdleMinutes,
 }: {
   categoryMetrics: CategoryMetrics;
   teamMetrics: TeamMetrics[];
-  alerts: TeamBalanceAlert[];
   weekIdleMinutes: number;
 }) {
   const total = categoryMetrics.totalMinutes;
-  const alertIds = new Set(alerts.map((a) => a.teamId));
 
   return (
     <>
@@ -150,13 +144,6 @@ function WeeklySection({
                 <Text style={styles.teamLabel} numberOfLines={1}>
                   {tm.teamName}
                 </Text>
-                {alertIds.has(tm.teamId) && (
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={13}
-                    color={colors.alert}
-                  />
-                )}
               </View>
               <MetricBar value={tm.minutes} total={total} accent="primary" />
               <Text style={styles.metricValue}>
@@ -339,8 +326,6 @@ function ExtrasSection({
   today: Date;
 }) {
   const streak = getStreak(sessions, today);
-  const contextSwitches = getContextSwitches(sessions, today);
-  const alerts = getTeamBalanceAlerts(sessions, teams, today);
   const dailyMetrics = getDailyMetrics(sessions, teams, today);
   const todayStr = toLocalDateString(today);
   const hasTodaySession = sessions.some(
@@ -361,37 +346,6 @@ function ExtrasSection({
           </View>
         </View>
       </View>
-
-      <SectionTitle icon="swap-horizontal-outline" label="TROCAS DE CONTEXTO" />
-      <View style={styles.card}>
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Hoje</Text>
-          <Text style={styles.switchValue}>{contextSwitches.today}</Text>
-          <Text style={styles.switchUnit}>trocas</Text>
-        </View>
-        <View style={[styles.switchRow, styles.switchRowSpaced]}>
-          <Text style={styles.switchLabel}>Esta semana</Text>
-          <Text style={styles.switchValue}>{contextSwitches.week}</Text>
-          <Text style={styles.switchUnit}>trocas</Text>
-        </View>
-      </View>
-
-      {alerts.length > 0 && (
-        <>
-          <SectionTitle icon="alert-circle-outline" label="ALERTAS DE EQUIPE" />
-          {alerts.map((alert) => (
-            <View key={alert.teamId} style={styles.alertCard}>
-              <View style={styles.alertTextRow}>
-                <Ionicons name="alert-circle-outline" size={14} color={colors.alert} />
-                <Text style={styles.alertText}>
-                  {alert.teamName}: {alert.actualPercent}% (meta:{' '}
-                  {alert.maxWeeklyPercent}%)
-                </Text>
-              </View>
-            </View>
-          ))}
-        </>
-      )}
 
       {dailyMetrics.totalMinutes > 0 && (
         <>
@@ -531,7 +485,6 @@ export default function DashboardScreen() {
 
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
   const teamMetrics = getWeeklyMetricsByTeam(sessions, teams, today);
-  const alerts = getTeamBalanceAlerts(sessions, teams, today);
   const efficiency = getWorkEfficiency(sessions, schedule, today);
 
   return (
@@ -541,7 +494,6 @@ export default function DashboardScreen() {
         <WeeklySection
           categoryMetrics={categoryMetrics}
           teamMetrics={teamMetrics}
-          alerts={alerts}
           weekIdleMinutes={efficiency.weekIdleMinutes}
         />
 
@@ -611,7 +563,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   barFill: { height: 6, borderRadius: 3 },
-  alertTextRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   emptyText: { ...typography.body, color: colors.textSecondary },
   chipsScroll: { marginVertical: 4 },
   chipsRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
@@ -669,14 +620,6 @@ const styles = StyleSheet.create({
   switchLabel: { fontSize: 13, color: colors.textSecondary, flex: 1 },
   switchValue: { ...typography.metricMedium, color: colors.textPrimary },
   switchUnit: { fontSize: 11, color: colors.textSecondary },
-  alertCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.alert,
-    padding: 12,
-    backgroundColor: '#1a0e00',
-  },
-  alertText: { color: colors.alert, fontSize: 13, fontWeight: '600' },
   dailyTotal: {
     ...typography.metricMedium,
     color: colors.textPrimary,
