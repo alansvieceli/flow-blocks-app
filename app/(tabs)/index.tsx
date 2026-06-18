@@ -496,6 +496,16 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Manual time entry shortcut */}
+        <TouchableOpacity
+          onPress={() => router.push('/manual-entry')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.manualEntryBtn}>
+            <Text style={styles.manualEntryText}>✏️ Registrar tempo manualmente</Text>
+          </View>
+        </TouchableOpacity>
+
         {/* Esta noite */}
         {(() => {
           const todayStr = toLocalDateString(new Date());
@@ -1003,6 +1013,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.amber,
+  },
+  manualEntryBtn: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.textDisabled,
+    backgroundColor: colors.cardFrom,
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualEntryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   sheetOverlay: {
     flex: 1,
