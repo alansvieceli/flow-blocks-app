@@ -502,7 +502,8 @@ export default function HomeScreen() {
           activeOpacity={0.7}
         >
           <View style={styles.manualEntryBtn}>
-            <Text style={styles.manualEntryText}>✏️ Registrar tempo manualmente</Text>
+            <Ionicons name="create-outline" size={14} color={colors.textSecondary} />
+            <Text style={styles.manualEntryText}>Registrar tempo manualmente</Text>
           </View>
         </TouchableOpacity>
 
@@ -1021,8 +1022,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardFrom,
     borderRadius: 14,
     padding: 14,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
   },
   manualEntryText: {
     fontSize: 13,
