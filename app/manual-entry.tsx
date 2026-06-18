@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Platform,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -116,30 +116,34 @@ export default function ManualEntryScreen() {
     const startedAt = combineDateAndTime(date, startTime).toISOString();
     const durationSeconds = durationMinutes! * 60;
 
-    if (entryType === 'work') {
-      const endedAt = new Date(
-        new Date(startedAt).getTime() + durationSeconds * 1000,
-      ).toISOString();
-      const newSession: Session = {
-        id: Date.now().toString(),
-        categoryId: categoryId!,
-        teamId: teamId,
-        startedAt,
-        endedAt,
-        durationSeconds,
-        note: null,
-      };
-      await updateSessions([...sessions, newSession]);
-    } else {
-      await updatePersonalDailyPlans(
-        applyPersonalNudgeToDailyPlans(
-          personalDailyPlans,
-          { activityId: activityId!, durationSeconds },
-          dateStr,
-        ),
-      );
+    try {
+      if (entryType === 'work') {
+        const endedAt = new Date(
+          new Date(startedAt).getTime() + durationSeconds * 1000,
+        ).toISOString();
+        const newSession: Session = {
+          id: Date.now().toString(),
+          categoryId: categoryId!,
+          teamId: teamId,
+          startedAt,
+          endedAt,
+          durationSeconds,
+          note: null,
+        };
+        await updateSessions([...sessions, newSession]);
+      } else {
+        await updatePersonalDailyPlans(
+          applyPersonalNudgeToDailyPlans(
+            personalDailyPlans,
+            { activityId: activityId!, durationSeconds },
+            dateStr,
+          ),
+        );
+      }
+      router.back();
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar o registro.');
     }
-    router.back();
   }
 
   const categoryItems = categories.map((c) => ({ id: c.id, label: c.label }));
@@ -238,7 +242,7 @@ export default function ManualEntryScreen() {
               value={combineDateAndTime(new Date(), startTime)}
               mode="time"
               is24Hour
-              display={Platform.OS === 'android' ? 'spinner' : 'spinner'}
+              display="spinner"
               onChange={(_, date) => {
                 setShowTimePicker(false);
                 if (date) {
