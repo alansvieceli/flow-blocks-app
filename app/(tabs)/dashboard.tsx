@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.cardBorder,
   },
   totalLabel: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
   },
   totalValue: {
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   metricRowSpaced: { marginTop: 10 },
   metricRowBottom: { marginBottom: 8 },
   teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 80 },
-  teamLabel: { flexShrink: 1, fontSize: 12, color: colors.textSecondary },
+  teamLabel: { flexShrink: 1, ...typography.rowLabel, color: colors.textSecondary },
   metricLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     width: 80,
   },
   metricLabel: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.textSecondary,
   },
   metricValue: {
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   barFill: { height: 6, borderRadius: 3 },
-  emptyText: { ...typography.body, color: colors.textSecondary },
+  emptyText: { ...typography.rowLabel, color: colors.textSecondary },
   chipsScroll: { marginVertical: 4 },
   chipsRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
   chipsRowWrap: {
@@ -597,7 +597,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: colors.accentFrom,
   },
-  chipActiveText: { color: colors.chipActiveText, fontSize: 12, fontWeight: '700' },
+  chipActiveText: {
+    color: colors.chipActiveText,
+    ...typography.rowLabel,
+    fontWeight: '700',
+  },
   chipInactive: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -606,7 +610,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
-  chipInactiveText: { color: colors.chipInactiveText, fontSize: 12 },
+  chipInactiveText: { color: colors.chipInactiveText, ...typography.rowLabel },
   heatmapHourRow: { flexDirection: 'row', marginBottom: 2 },
   heatmapRow: { flexDirection: 'row', marginBottom: 2, alignItems: 'center' },
   heatmapDayLabel: {
@@ -632,7 +636,7 @@ const styles = StyleSheet.create({
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   streakNumber: { ...typography.metricLarge, color: colors.accentFrom },
   streakLabels: { gap: 2 },
-  streakLabel: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
+  streakLabel: { ...typography.rowLabel, color: colors.textPrimary, fontWeight: '600' },
   streakSub: { fontSize: 11, color: colors.textSecondary },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   switchRowSpaced: { marginTop: 8 },
@@ -644,7 +648,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 4,
   },
-  dailyTeam: { fontSize: 12, color: colors.textSecondary },
+  dailyTeam: { ...typography.rowLabel, color: colors.textSecondary },
   chartRow: { gap: 4, marginTop: 8 },
   chartLabelRow: {
     flexDirection: 'row',
@@ -652,7 +656,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  chartLabel: { fontSize: 12, color: colors.textPrimary, flex: 1 },
+  chartLabel: { ...typography.rowLabel, color: colors.textPrimary, flex: 1 },
   chartValue: { fontSize: 11, color: colors.textSecondary },
   chartBarTrack: {
     height: 6,

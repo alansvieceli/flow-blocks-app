@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../src/theme/colors';
 import { useActiveSession } from '../../src/lib/useActiveSession';
 import { formatDuration } from '../../src/lib/formatDuration';
+import { typography } from '../../src/theme/typography';
 
 function ActiveSessionBanner() {
   const { activeSession, elapsed } = useActiveSession();
@@ -119,16 +120,15 @@ const styles = StyleSheet.create({
   },
   bannerRecording: {
     color: colors.alert,
-    fontSize: 12,
+    ...typography.rowLabel,
     fontWeight: '600',
   },
   bannerTimer: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
   bannerHint: {
     color: colors.textSecondary,
-    fontSize: 12,
+    ...typography.rowLabel,
   },
 });

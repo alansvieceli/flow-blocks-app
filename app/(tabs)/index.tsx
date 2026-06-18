@@ -748,8 +748,7 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
   recordingRow: {
     flexDirection: 'row',
@@ -773,7 +772,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   startedAtLabel: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
     textAlign: 'center',
   },
@@ -803,7 +802,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 15,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     backgroundColor: colors.inputBackground,
   },
@@ -821,7 +820,7 @@ const styles = StyleSheet.create({
   },
   btnSkipText: {
     color: colors.textSecondary,
-    fontSize: 15,
+    ...typography.rowLabel,
   },
   btnSaveNote: {
     flex: 2,
@@ -832,7 +831,7 @@ const styles = StyleSheet.create({
   },
   btnSaveNoteText: {
     color: colors.textPrimary,
-    fontSize: 15,
+    ...typography.rowLabel,
     fontWeight: '600',
   },
   tonightSection: {
@@ -858,7 +857,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tonightCount: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.textSecondary,
     fontWeight: '600',
   },
@@ -889,12 +888,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tonightAvatarText: {
-    fontSize: 12,
+    ...typography.rowLabel,
     fontWeight: '800',
     color: colors.emerald,
   },
   tonightCardName: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.emeraldText,
     fontWeight: '600',
     alignSelf: 'stretch',
@@ -945,7 +944,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nudgeBadge: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.amberMuted,
     letterSpacing: 0.6,
@@ -961,7 +960,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   nudgeName: {
-    fontSize: 16,
+    ...typography.rowLabel,
     fontWeight: '700',
     color: colors.amberText,
   },
@@ -979,7 +978,7 @@ const styles = StyleSheet.create({
     color: colors.amberText,
   },
   nudgeRemainingLabel: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.amberMuted,
   },
   nudgeElapsed: {
@@ -987,7 +986,7 @@ const styles = StyleSheet.create({
     color: colors.amberMuted,
   },
   nudgeOf: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.amberMuted,
   },
   nudgeProgressBg: {
@@ -1055,12 +1054,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sheetTitle: {
-    fontSize: 15,
+    ...typography.rowLabel,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   sheetSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textSecondary,
   },
   sheetOptions: {
@@ -1076,7 +1075,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sheetOptionExtendText: {
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
     color: colors.amberText,
   },
@@ -1089,7 +1088,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sheetOptionEndText: {
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
     color: '#ff7070',
   },

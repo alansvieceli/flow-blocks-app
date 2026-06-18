@@ -360,17 +360,16 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
   cancelText: {
     color: colors.accentFrom,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '700',
   },
   deleteText: {
     color: colors.destructiveFrom,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '700',
     textAlign: 'right',
   },
@@ -387,7 +386,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   warningText: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.alert,
   },
   label: {
@@ -403,7 +402,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 15,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     backgroundColor: colors.inputBackground,
   },
@@ -419,11 +418,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pickerText: {
-    fontSize: 15,
+    ...typography.rowLabel,
     color: colors.textPrimary,
   },
   errorText: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.destructiveFrom,
     marginHorizontal: 16,
   },
@@ -443,7 +442,6 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
 });

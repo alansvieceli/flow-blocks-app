@@ -271,5 +271,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   startBtnDisabled: { opacity: 0.35 },
-  startBtnText: { fontSize: 16, fontWeight: '800', color: '#1a1000' },
+  startBtnText: { ...typography.metricMedium, color: '#1a1000' },
 });

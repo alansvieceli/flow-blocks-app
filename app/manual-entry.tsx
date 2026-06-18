@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   dateLabel: {
-    fontSize: 15,
+    ...typography.rowLabel,
     fontWeight: '600',
     color: colors.textPrimary,
     paddingVertical: 4,
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSubtle,
   },
   toggleBtnText: {
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
     color: colors.textSecondary,
   },
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSubtle,
   },
   presetBtnText: {
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
     color: colors.textSecondary,
   },
@@ -558,13 +558,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 15,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     backgroundColor: colors.inputBackground,
     width: 100,
   },
   customLabel: {
-    fontSize: 14,
+    ...typography.rowLabel,
     color: colors.textSecondary,
   },
   estimatedRow: {
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   estimatedValue: {
-    fontSize: 15,
+    ...typography.rowLabel,
     fontWeight: '700',
     color: colors.textPrimary,
   },
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 14,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     backgroundColor: colors.inputBackground,
     minHeight: 72,
@@ -606,7 +606,6 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
 });

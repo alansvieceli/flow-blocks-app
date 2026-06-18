@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   title: {
-    fontSize: 14,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     fontWeight: '600',
   },
   subtitle: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
   },
   disabledText: {

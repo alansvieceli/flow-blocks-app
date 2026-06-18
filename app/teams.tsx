@@ -17,6 +17,7 @@ import { ScreenHeader } from '../src/components/ScreenHeader';
 import { Card, EmptyState, FabButton } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
+import { typography } from '../src/theme/typography';
 import { Team } from '../src/types';
 
 export default function TeamsScreen() {
@@ -284,10 +285,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rowInfo: { flex: 1, gap: 2 },
-  rowName: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
-  rowMeta: { fontSize: 12, color: colors.textSecondary },
+  rowName: { ...typography.rowLabel, color: colors.textPrimary, fontWeight: '600' },
+  rowMeta: { fontSize: 11, color: colors.textSecondary },
   rowOrder: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.textSecondary,
     fontWeight: '700',
     minWidth: 28,
@@ -332,17 +333,16 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
   cancelText: {
     color: colors.accentFrom,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '700',
   },
   deleteText: {
     color: colors.destructiveFrom,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '700',
     textAlign: 'right',
   },
@@ -364,12 +364,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 15,
+    ...typography.rowLabel,
     color: colors.textPrimary,
     backgroundColor: colors.inputBackground,
   },
   errorText: {
-    fontSize: 12,
+    ...typography.rowLabel,
     color: colors.destructiveFrom,
     marginHorizontal: 16,
   },
@@ -385,7 +385,6 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.metricMedium,
   },
 });

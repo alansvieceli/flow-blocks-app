@@ -227,9 +227,9 @@ const styles = StyleSheet.create({
   },
   rowIcon: { marginTop: 2 },
   rowContent: { flex: 1, gap: 3 },
-  rowTitle: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
-  rowDesc: { ...typography.body, color: colors.textSecondary },
-  rowDatetime: { fontSize: 12, color: colors.textSecondary },
+  rowTitle: { ...typography.rowLabel, color: colors.textPrimary, fontWeight: '600' },
+  rowDesc: { ...typography.rowLabel, color: colors.textSecondary },
+  rowDatetime: { fontSize: 11, color: colors.textSecondary },
   badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 2 },
   badge: {
     backgroundColor: colors.chipInactiveBackground,

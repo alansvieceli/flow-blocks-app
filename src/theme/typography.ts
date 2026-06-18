@@ -11,8 +11,11 @@ export const typography = {
     textTransform: 'uppercase',
     letterSpacing: 1,
   } satisfies TextStyle,
+  rowLabel: {
+    fontSize: 13,
+  } satisfies TextStyle,
   body: {
-    fontSize: 12,
+    fontSize: 13,
   } satisfies TextStyle,
   metricLarge: {
     fontSize: 44,

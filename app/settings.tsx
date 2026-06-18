@@ -13,6 +13,7 @@ import { OptionPicker, SectionHeader } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { AppSettings } from '../src/storage/settingsStorage';
 import { colors } from '../src/theme/colors';
+import { typography } from '../src/theme/typography';
 
 const HISTORY_MONTHS_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   id: String(i + 1),
@@ -207,11 +208,11 @@ const styles = StyleSheet.create({
   },
   rowPressed: { opacity: 0.6 },
   rowText: { flex: 1, gap: 2 },
-  rowLabel: { fontSize: 15, color: colors.textPrimary },
-  dangerLabel: { fontSize: 15, color: colors.destructiveFrom },
-  rowSublabel: { fontSize: 12, color: colors.textSecondary },
+  rowLabel: { ...typography.rowLabel, color: colors.textPrimary },
+  dangerLabel: { ...typography.rowLabel, color: colors.destructiveFrom },
+  rowSublabel: { fontSize: 11, color: colors.textSecondary },
   versionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textDisabled,
     textAlign: 'center',
     marginTop: 24,

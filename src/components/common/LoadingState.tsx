@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentFrom,
   },
   message: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
   },
 });

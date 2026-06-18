@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   message: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
     textAlign: 'center',
   },

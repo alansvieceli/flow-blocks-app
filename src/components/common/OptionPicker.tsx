@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
   value: {
     flex: 1,
     color: colors.textPrimary,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
   },
   placeholder: {
     flex: 1,
     color: colors.textSecondary,
-    fontSize: 14,
+    ...typography.rowLabel,
   },
   overlay: {
     flex: 1,
@@ -195,9 +195,8 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.tabBarBorder,
   },
   sheetTitle: {
-    ...typography.screenTitle,
+    ...typography.metricMedium,
     color: colors.textPrimary,
-    fontSize: 16,
   },
   clearRow: {
     paddingHorizontal: 16,
@@ -207,11 +206,11 @@ const styles = StyleSheet.create({
   },
   clearText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
   },
   emptyText: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.textSecondary,
     padding: 20,
     textAlign: 'center',
@@ -236,12 +235,12 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     color: colors.textPrimary,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '600',
   },
   rowDetail: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
   },
   separator: {
     height: 1,

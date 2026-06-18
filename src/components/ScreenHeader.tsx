@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   backLabel: {
     color: colors.accentFrom,
-    fontSize: 14,
+    ...typography.rowLabel,
     fontWeight: '700',
   },
   rightAction: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   subtitle: {
-    ...typography.body,
+    ...typography.rowLabel,
     color: colors.accentFrom,
   },
 });
