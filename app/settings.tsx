@@ -12,7 +12,6 @@ import { OptionPicker, SectionHeader } from '../src/components/common';
 import { useAppData } from '../src/state/AppDataProvider';
 import { AppSettings } from '../src/storage/settingsStorage';
 import { colors } from '../src/theme/colors';
-import { typography } from '../src/theme/typography';
 
 const HISTORY_MONTHS_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   id: String(i + 1),
