@@ -966,14 +966,14 @@ const styles = StyleSheet.create({
   nudgeBadge: {
     fontSize: 10,
     fontWeight: '600',
-    color: colors.amberDim,
+    color: colors.amberMuted,
     letterSpacing: 0.6,
   },
   nudgeStopBtn: {
     fontSize: 11,
-    color: colors.amberDim,
+    color: colors.amberMuted,
     borderWidth: 1,
-    borderColor: colors.amberBorder,
+    borderColor: colors.amberDim,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -999,15 +999,15 @@ const styles = StyleSheet.create({
   },
   nudgeRemainingLabel: {
     fontSize: 10,
-    color: colors.amberDim,
+    color: colors.amberMuted,
   },
   nudgeElapsed: {
     fontSize: 11,
-    color: colors.amberDim,
+    color: colors.amberMuted,
   },
   nudgeOf: {
     fontSize: 10,
-    color: colors.amberBorder,
+    color: colors.amberMuted,
   },
   nudgeProgressBg: {
     height: 4,

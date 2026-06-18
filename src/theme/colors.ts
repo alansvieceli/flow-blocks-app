@@ -19,6 +19,7 @@ export const colors = {
   amberCard: '#1a1000',
   amberBorder: '#2a1a00',
   amberText: '#ffe8b0',
+  amberMuted: '#d6a348',
   amberDim: '#5a3500',
   textPrimary: '#ffffff',
   textSecondary: '#4a4a70',

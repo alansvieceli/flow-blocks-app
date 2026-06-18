@@ -19,6 +19,7 @@ amber: '#f59e0b',
 amberCard: '#1a1000',
 amberBorder: '#2a1a00',
 amberText: '#ffe8b0',
+amberMuted: '#d6a348',
 amberDim: '#5a3500',
 ```
 
@@ -33,6 +34,7 @@ amber: '#f59e0b',
 amberCard: '#1a1000',
 amberBorder: '#2a1a00',
 amberText: '#ffe8b0',
+amberMuted: '#d6a348',
 amberDim: '#5a3500',
 ```
 
@@ -364,14 +366,14 @@ nudgeTopRow: {
 nudgeBadge: {
   fontSize: 10,
   fontWeight: '600',
-  color: colors.amberDim,
+  color: colors.amberMuted,
   letterSpacing: 0.6,
 },
 nudgeStopBtn: {
   fontSize: 11,
-  color: colors.amberDim,
+  color: colors.amberMuted,
   borderWidth: 1,
-  borderColor: colors.amberBorder,
+  borderColor: colors.amberDim,
   paddingHorizontal: 10,
   paddingVertical: 4,
   borderRadius: 6,
@@ -394,15 +396,15 @@ nudgeRemaining: {
 },
 nudgeRemainingLabel: {
   fontSize: 10,
-  color: colors.amberDim,
+  color: colors.amberMuted,
 },
 nudgeElapsed: {
   fontSize: 11,
-  color: colors.amberDim,
+  color: colors.amberMuted,
 },
 nudgeOf: {
   fontSize: 10,
-  color: colors.amberBorder,
+  color: colors.amberMuted,
 },
 nudgeProgressBg: {
   height: 4,
