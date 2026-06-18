@@ -275,6 +275,7 @@ export default function HomeScreen() {
     };
     const newNotifId = await scheduleNudgeNotification(updated);
     if (!newNotifId) {
+      setShowNudgeSheet(false);
       Alert.alert(
         'Não foi possível reagendar',
         'O nudge continua ativo no horário anterior porque a nova notificação não pôde ser agendada.',
@@ -582,7 +583,11 @@ export default function HomeScreen() {
         })()}
 
         {/* Nudge extend/end sheet */}
-        <Modal visible={showNudgeSheet} transparent animationType="slide">
+        <Modal
+          visible={showNudgeSheet && !!activeNudge}
+          transparent
+          animationType="slide"
+        >
           <View style={styles.sheetOverlay}>
             <View style={styles.sheet}>
               <View style={styles.sheetHeader}>

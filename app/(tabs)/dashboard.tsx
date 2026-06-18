@@ -497,8 +497,8 @@ const styles = StyleSheet.create({
   metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   metricRowSpaced: { marginTop: 10 },
   metricRowBottom: { marginBottom: 8 },
-  teamLabelRow: { flexDirection: 'row', alignItems: 'center', width: 80 },
-  teamLabel: { flex: 1, fontSize: 12, color: colors.textSecondary },
+  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 80 },
+  teamLabel: { flexShrink: 1, fontSize: 12, color: colors.textSecondary },
   metricLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
