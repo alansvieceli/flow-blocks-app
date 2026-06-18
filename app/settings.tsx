@@ -28,6 +28,30 @@ const NUDGE_ABANDON_OPTIONS = [
   { id: '24', label: '24 horas' },
 ];
 
+const WORK_START_OPTIONS = [
+  { id: '6', label: '06:00' },
+  { id: '7', label: '07:00' },
+  { id: '8', label: '08:00' },
+  { id: '9', label: '09:00' },
+  { id: '10', label: '10:00' },
+];
+
+const WORK_END_OPTIONS = [
+  { id: '15', label: '15:00' },
+  { id: '16', label: '16:00' },
+  { id: '17', label: '17:00' },
+  { id: '18', label: '18:00' },
+  { id: '19', label: '19:00' },
+  { id: '20', label: '20:00' },
+];
+
+const LUNCH_OPTIONS = [
+  { id: '30', label: '30 min' },
+  { id: '45', label: '45 min' },
+  { id: '60', label: '60 min' },
+  { id: '90', label: '90 min' },
+];
+
 function ToggleRow({
   label,
   sublabel,
@@ -113,6 +137,30 @@ export default function SettingsScreen() {
           placeholder="Selecionar tempo"
           selectedId={String(settings.nudgeAbandonHours ?? 8)}
         />
+
+        <SectionHeader title="JORNADA DE TRABALHO" style={styles.sectionHeader} />
+        <OptionPicker
+          label="Início do expediente"
+          items={WORK_START_OPTIONS}
+          onSelect={(id) => update({ workStartHour: Number(id) })}
+          placeholder="Selecionar hora"
+          selectedId={String(settings.workStartHour ?? 8)}
+        />
+        <OptionPicker
+          label="Fim do expediente"
+          items={WORK_END_OPTIONS}
+          onSelect={(id) => update({ workEndHour: Number(id) })}
+          placeholder="Selecionar hora"
+          selectedId={String(settings.workEndHour ?? 18)}
+        />
+        <OptionPicker
+          label="Duração do almoço"
+          items={LUNCH_OPTIONS}
+          onSelect={(id) => update({ lunchDurationMinutes: Number(id) })}
+          placeholder="Selecionar duração"
+          selectedId={String(settings.lunchDurationMinutes ?? 60)}
+        />
+
         <View style={[styles.section, styles.sectionSpaced]}>
           <Pressable
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
