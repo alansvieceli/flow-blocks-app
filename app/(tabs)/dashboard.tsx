@@ -7,6 +7,7 @@ import {
   CategoryMetrics,
   TeamBalanceAlert,
   TeamMetrics,
+  WorkEfficiency,
   WorkSchedule,
   getDailyMetrics,
   getContextSwitches,
@@ -15,6 +16,7 @@ import {
   getTeamBalanceAlerts,
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
+  getWorkEfficiency,
 } from '../../src/lib/metrics';
 import { getPersonalDoneMinutesByActivity } from '../../src/lib/personalMetrics';
 import { useAppData } from '../../src/state/AppDataProvider';
@@ -81,10 +83,12 @@ function WeeklySection({
   categoryMetrics,
   teamMetrics,
   alerts,
+  weekIdleMinutes,
 }: {
   categoryMetrics: CategoryMetrics;
   teamMetrics: TeamMetrics[];
   alerts: TeamBalanceAlert[];
+  weekIdleMinutes: number;
 }) {
   const total = categoryMetrics.totalMinutes;
   const alertIds = new Set(alerts.map((a) => a.teamId));
@@ -121,6 +125,18 @@ function WeeklySection({
           <Text style={styles.metricValue}>
             {formatMinutes(categoryMetrics.interruptionMinutes)}
           </Text>
+        </View>
+        <View style={[styles.metricRow, styles.metricRowSpaced]}>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Ocioso</Text>
+          </View>
+          <MetricBar
+            value={weekIdleMinutes}
+            total={categoryMetrics.totalMinutes + weekIdleMinutes}
+            accent="primary"
+          />
+          <Text style={styles.metricValue}>{formatMinutes(weekIdleMinutes)}</Text>
         </View>
       </View>
 
@@ -396,6 +412,41 @@ function ExtrasSection({
   );
 }
 
+function EfficiencySection({ efficiency }: { efficiency: WorkEfficiency }) {
+  function pct(worked: number, available: number): string {
+    if (available === 0) return '—';
+    return `${Math.round((worked / available) * 100)}%`;
+  }
+
+  return (
+    <>
+      <SectionTitle icon="speedometer-outline" label="APROVEITAMENTO" />
+      <View style={styles.card}>
+        <View style={styles.switchRow}>
+          <Text style={styles.switchLabel}>Hoje</Text>
+          <Text style={styles.switchValue}>
+            {formatMinutes(efficiency.todayWorkedMinutes)}
+          </Text>
+          <Text style={styles.switchUnit}>
+            / {formatMinutes(efficiency.todayAvailableMinutes)} (
+            {pct(efficiency.todayWorkedMinutes, efficiency.todayAvailableMinutes)})
+          </Text>
+        </View>
+        <View style={[styles.switchRow, styles.switchRowSpaced]}>
+          <Text style={styles.switchLabel}>Esta semana</Text>
+          <Text style={styles.switchValue}>
+            {formatMinutes(efficiency.weekWorkedMinutes)}
+          </Text>
+          <Text style={styles.switchUnit}>
+            / {formatMinutes(efficiency.weekAvailableMinutes)} (
+            {pct(efficiency.weekWorkedMinutes, efficiency.weekAvailableMinutes)})
+          </Text>
+        </View>
+      </View>
+    </>
+  );
+}
+
 function PersonalChartSection() {
   const { personalActivities, personalDailyPlans } = useAppData();
   const [chartPeriod, setChartPeriod] = useState<'currentWeek' | 'last4Weeks'>(
@@ -481,6 +532,7 @@ export default function DashboardScreen() {
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
   const teamMetrics = getWeeklyMetricsByTeam(sessions, teams, today);
   const alerts = getTeamBalanceAlerts(sessions, teams, today);
+  const efficiency = getWorkEfficiency(sessions, schedule, today);
 
   return (
     <View style={styles.container}>
@@ -490,6 +542,7 @@ export default function DashboardScreen() {
           categoryMetrics={categoryMetrics}
           teamMetrics={teamMetrics}
           alerts={alerts}
+          weekIdleMinutes={efficiency.weekIdleMinutes}
         />
 
         <HeatmapSection
@@ -500,6 +553,8 @@ export default function DashboardScreen() {
         />
 
         <ExtrasSection sessions={sessions} teams={teams} today={today} />
+
+        <EfficiencySection efficiency={efficiency} />
 
         <PersonalChartSection />
       </ScrollView>
