@@ -1,6 +1,7 @@
 import {
   cancelReminderNotification,
   requestNotificationPermission,
+  scheduleNudgeNotification,
   scheduleReminderNotification,
 } from '../notifications';
 
@@ -70,6 +71,45 @@ describe('scheduleReminderNotification', () => {
       datetime: new Date(Date.now() - 1000).toISOString(),
     };
     const result = await scheduleReminderNotification(pastReminder);
+    expect(result).toBeNull();
+  });
+});
+
+describe('scheduleNudgeNotification', () => {
+  const futureEndsAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+  it('schedules and returns notification id', async () => {
+    ExpoNotifications.setNotificationChannelAsync.mockResolvedValue(undefined);
+    ExpoNotifications.scheduleNotificationAsync.mockResolvedValue('nudge-notif-1');
+    const result = await scheduleNudgeNotification({
+      id: 'n1',
+      label: 'Video Game',
+      endsAt: futureEndsAt,
+    });
+    expect(result).toBe('nudge-notif-1');
+    expect(ExpoNotifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({ title: 'Video Game' }),
+      }),
+    );
+  });
+
+  it('returns null when endsAt is in the past', async () => {
+    const result = await scheduleNudgeNotification({
+      id: 'n1',
+      label: 'Video Game',
+      endsAt: new Date(Date.now() - 1000).toISOString(),
+    });
+    expect(result).toBeNull();
+  });
+
+  it('returns null when scheduling throws', async () => {
+    ExpoNotifications.scheduleNotificationAsync.mockRejectedValue(new Error('fail'));
+    const result = await scheduleNudgeNotification({
+      id: 'n1',
+      label: 'Video Game',
+      endsAt: futureEndsAt,
+    });
     expect(result).toBeNull();
   });
 });

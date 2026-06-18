@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { Reminder } from '../types';
+import { ActiveNudge, Reminder } from '../types';
 
 const DEFAULT_CHANNEL_ID = 'default';
 
@@ -58,6 +58,33 @@ export async function scheduleReminderNotification(
         title: reminder.title,
         body: reminder.description ?? undefined,
         data: { reminderId: reminder.id },
+        sound: 'default',
+      },
+      trigger: {
+        type: ExpoNotifications.SchedulableTriggerInputTypes.DATE,
+        date: trigger,
+        channelId: DEFAULT_CHANNEL_ID,
+      },
+    });
+    return notificationId;
+  } catch {
+    return null;
+  }
+}
+
+export async function scheduleNudgeNotification(
+  nudge: Pick<ActiveNudge, 'id' | 'label' | 'endsAt'>,
+): Promise<string | null> {
+  if (!ExpoNotifications) return null;
+  try {
+    const trigger = new Date(nudge.endsAt);
+    if (trigger.getTime() <= Date.now()) return null;
+    await ensureAndroidNotificationChannel();
+    const notificationId = await ExpoNotifications.scheduleNotificationAsync({
+      content: {
+        title: nudge.label,
+        body: 'Seu tempo acabou. Quer continuar ou encerrar?',
+        data: { nudgeId: nudge.id },
         sound: 'default',
       },
       trigger: {
