@@ -60,7 +60,7 @@ Common tab data is loaded through a shared React provider (`AppDataProvider`) so
 
 ## Activity Nudge
 
-The Home screen includes an amber activity nudge entry point. A nudge can be personal or work-related, has a selected duration, schedules a local notification for its end time, and shows countdown/progress while active. When time is up, the user can extend it by a preset duration or end it. Ending a personal nudge marks/adds today's personal plan entry as done; ending a work nudge creates a recorded work session. Stale nudges are discarded automatically after `settings.nudgeAbandonHours`.
+The Home screen includes an amber activity nudge entry point. A nudge can be personal or work-related, has a selected duration, respects the app notification toggle, requires notification permission before starting, schedules a local notification for its end time, and shows countdown/progress while active. When time is up, the user can extend it by a preset duration or end it. Ending a personal nudge marks/adds today's personal plan entry as done; ending a work nudge creates a recorded work session. Stale nudges are discarded automatically after `settings.nudgeAbandonHours`.
 
 ## Branding
 

@@ -21,10 +21,20 @@ The screen has three steps rendered on a single scroll: type selection → activ
 ```tsx
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { OptionPicker } from '../src/components/common';
-import { scheduleNudgeNotification } from '../src/lib/notifications';
+import {
+  requestNotificationPermission,
+  scheduleNudgeNotification,
+} from '../src/lib/notifications';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -41,7 +51,8 @@ const DURATION_OPTIONS = [
 
 export default function NudgeFormScreen() {
   const router = useRouter();
-  const { categories, personalActivities, setActiveNudge, teams } = useAppData();
+  const { categories, personalActivities, setActiveNudge, settings, teams } =
+    useAppData();
 
   const [type, setType] = useState<'personal' | 'work' | null>(null);
   const [activityId, setActivityId] = useState<string | null>(null);
@@ -80,6 +91,23 @@ export default function NudgeFormScreen() {
 
   async function handleStart() {
     if (!canStart || !type || !durationSeconds) return;
+    if (!settings.notificationsEnabled) {
+      Alert.alert(
+        'Notificações desligadas',
+        'Ative as notificações em Configurações antes de iniciar um Nudge.',
+      );
+      return;
+    }
+
+    const granted = await requestNotificationPermission();
+    if (!granted) {
+      Alert.alert(
+        'Notificações desativadas',
+        'Permita notificações para o Flow Blocks antes de iniciar um Nudge.',
+      );
+      return;
+    }
+
     const now = new Date();
     const nudge: ActiveNudge = {
       id: Date.now().toString(),
@@ -95,6 +123,13 @@ export default function NudgeFormScreen() {
       extendCount: 0,
     };
     const notifId = await scheduleNudgeNotification(nudge);
+    if (!notifId) {
+      Alert.alert(
+        'Não foi possível agendar',
+        'O Nudge não foi iniciado porque a notificação não pôde ser agendada.',
+      );
+      return;
+    }
     await setActiveNudge({ ...nudge, notificationId: notifId });
     router.back();
   }
@@ -271,6 +306,8 @@ Expected: no TypeScript errors.
 - Selecting "Pessoal" shows only the activity picker.
 - Selecting "Trabalho" shows team + category pickers.
 - Start button is disabled until all required fields are filled.
-- Tapping Start saves `ActiveNudge`, schedules notification, navigates back to home.
+- Tapping Start respects the app notification toggle, requests notification permission, saves `ActiveNudge`, schedules notification, and navigates back to home.
+- If notification permission is denied or scheduling fails, the Nudge is not started.
+- If notifications are disabled in Settings, the Nudge is not started.
 - Nudge card appears on home immediately after starting.
 - `npm run check` passes.
