@@ -56,6 +56,7 @@ export default function HomeScreen() {
     personalActivities,
     personalDailyPlans,
     personalWeeklyTemplate,
+    appendSession,
     sessions,
     setActiveNudge,
     setActiveSession,
@@ -252,7 +253,7 @@ export default function HomeScreen() {
         ),
         note: null,
       };
-      await updateSessions([...sessions, newSession]);
+      await appendSession(newSession);
     }
     await clearActiveNudge();
     setShowNudgeSheet(false);
@@ -313,7 +314,7 @@ export default function HomeScreen() {
       durationSeconds,
       note: null,
     };
-    await updateSessions([...sessions, newSession]);
+    await appendSession(newSession);
     await clearActiveSession();
     setElapsed(0);
     setNoteSessionId(newSession.id);

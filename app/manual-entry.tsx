@@ -44,13 +44,12 @@ function addMinutesToHHMM(hhmm: string, minutes: number): string {
 export default function ManualEntryScreen() {
   const router = useRouter();
   const {
+    appendSession,
     categories,
     personalActivities,
     personalDailyPlans,
-    sessions,
     teams,
     updatePersonalDailyPlans,
-    updateSessions,
   } = useAppData();
 
   const [entryType, setEntryType] = useState<'work' | 'personal'>('work');
@@ -135,7 +134,7 @@ export default function ManualEntryScreen() {
           durationSeconds,
           note: null,
         };
-        await updateSessions([...sessions, newSession]);
+        await appendSession(newSession);
       } else {
         await updatePersonalDailyPlans(
           applyPersonalNudgeToDailyPlans(

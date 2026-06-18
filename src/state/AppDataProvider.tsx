@@ -77,6 +77,7 @@ interface AppDataContextValue extends AppDataState {
     template: PersonalWeeklyTemplateDay[],
   ) => Promise<void>;
   updateReminders: (reminders: Reminder[]) => Promise<void>;
+  appendSession: (session: Session) => Promise<void>;
   updateSessions: (sessions: Session[]) => Promise<void>;
   updateSettings: (settings: AppSettings) => Promise<void>;
   updateTeams: (teams: Team[]) => Promise<void>;
@@ -290,6 +291,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         );
         setState((current) => ({ ...current, reminders: pruned }));
         await saveReminders(pruned);
+      },
+      appendSession: async (session) => {
+        const months = state.settings.historyMonths;
+        const pruned = await new Promise<Session[]>((resolve) => {
+          setState((current) => {
+            const next = [...current.sessions, session];
+            const p = pruneSessionsByRetention(next, months);
+            resolve(p);
+            return { ...current, sessions: p };
+          });
+        });
+        await saveSessions(pruned);
       },
       updateSessions: async (sessions) => {
         const pruned = pruneSessionsByRetention(sessions, state.settings.historyMonths);
