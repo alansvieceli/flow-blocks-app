@@ -120,10 +120,8 @@ function WeeklySection({
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="time-outline" size={11} color={colors.textDisabled} />
-            <Text style={[styles.metricLabel, { color: colors.textDisabled }]}>
-              Sem sessão
-            </Text>
+            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Sem sessão</Text>
           </View>
           <MetricBar
             value={weekIdleMinutes}
@@ -293,7 +291,9 @@ function HeatmapSection({
             {Array.from({ length: 24 }, (_, h) => (
               <View key={h} style={styles.heatmapCell}>
                 {HOUR_LABELS.includes(h) ? (
-                  <Text style={styles.heatmapHourLabel}>{h}</Text>
+                  <Text style={styles.heatmapHourLabel}>
+                    {String(h).padStart(2, '0')}
+                  </Text>
                 ) : null}
               </View>
             ))}
@@ -556,13 +556,13 @@ const styles = StyleSheet.create({
   metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   metricRowSpaced: { marginTop: 10 },
   metricRowBottom: { marginBottom: 8 },
-  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 80 },
+  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 96 },
   teamLabel: { flexShrink: 1, ...typography.rowLabel, color: colors.textSecondary },
   metricLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    width: 80,
+    width: 96,
   },
   metricLabel: {
     ...typography.rowLabel,
@@ -631,7 +631,8 @@ const styles = StyleSheet.create({
   },
   heatmapHourLabel: {
     fontSize: 7,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   streakNumber: { ...typography.metricLarge, color: colors.accentFrom },

@@ -3,7 +3,7 @@
     "name": "FlowBlocks",
     "slug": "flow-blocks-app",
     "scheme": "flow-blocks-app",
-    "version": "1.0.1",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
