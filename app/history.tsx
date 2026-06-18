@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { getCategoryLabel } from '../src/lib/categories';
 import { formatDuration } from '../src/lib/formatDuration';
@@ -85,10 +93,14 @@ function groupByDay(sessions: Session[]): GroupedDay[] {
 
 function SessionCard({
   categories,
+  onDelete,
+  onEdit,
   session,
   teams,
 }: {
   categories: Category[];
+  onDelete: () => void;
+  onEdit: () => void;
   session: Session;
   teams: Team[];
 }) {
@@ -102,9 +114,17 @@ function SessionCard({
         <Text style={styles.categoryName}>
           {getCategoryLabel(session.categoryId, categories)}
         </Text>
-        <Text style={styles.durationText}>
-          {formatDuration(session.durationSeconds)}
-        </Text>
+        <View style={styles.cardActions}>
+          <Text style={styles.durationText}>
+            {formatDuration(session.durationSeconds)}
+          </Text>
+          <TouchableOpacity onPress={onEdit} hitSlop={8} activeOpacity={0.6}>
+            <Ionicons name="pencil-outline" size={15} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onDelete} hitSlop={8} activeOpacity={0.6}>
+            <Ionicons name="trash-outline" size={15} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
       </View>
       <Text style={teamRemoved ? styles.teamRemoved : styles.teamName}>{teamName}</Text>
       <View style={styles.timeRange}>
@@ -127,8 +147,16 @@ function SessionCard({
 }
 
 export default function HistoryScreen() {
-  const { categories, sessions, teams } = useAppData();
+  const router = useRouter();
+  const { categories, removeSession, sessions, teams } = useAppData();
   const [filter, setFilter] = useState<FilterType>('hoje');
+
+  function handleDelete(id: string) {
+    Alert.alert('Excluir registro', 'Tem certeza que deseja excluir este registro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: () => void removeSession(id) },
+    ]);
+  }
   const sortedSessions = [...sessions].sort(
     (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
   );
@@ -187,6 +215,8 @@ export default function HistoryScreen() {
                 <SessionCard
                   key={s.id}
                   categories={categories}
+                  onDelete={() => handleDelete(s.id)}
+                  onEdit={() => router.push(`/manual-entry?sessionId=${s.id}`)}
                   session={s}
                   teams={teams}
                 />
@@ -254,6 +284,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   categoryName: { fontSize: 14, color: colors.textPrimary, fontWeight: '600' },
   durationText: { fontSize: 14, color: colors.accentFrom, fontWeight: '700' },

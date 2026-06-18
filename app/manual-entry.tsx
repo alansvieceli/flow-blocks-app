@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
@@ -41,33 +41,84 @@ function addMinutesToHHMM(hhmm: string, minutes: number): string {
   return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
 }
 
+function formatDateLabel(date: Date): string {
+  const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const months = [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+  ];
+  return `${days[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]}`;
+}
+
 export default function ManualEntryScreen() {
   const router = useRouter();
+  const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
   const {
     appendSession,
     categories,
     personalActivities,
     personalDailyPlans,
+    replaceSession,
+    sessions,
     teams,
     updatePersonalDailyPlans,
   } = useAppData();
 
+  const isEditing = !!sessionId;
+  const editSession = isEditing
+    ? (sessions.find((s) => s.id === sessionId) ?? null)
+    : null;
+
+  const editMinutes = editSession ? Math.round(editSession.durationSeconds / 60) : null;
+  const editIsPreset =
+    editMinutes !== null && DURATION_PRESETS.some((p) => p.minutes === editMinutes);
+
   const [entryType, setEntryType] = useState<'work' | 'personal'>('work');
-  const [day, setDay] = useState<'today' | 'yesterday'>('today');
+  const [day, setDay] = useState<'today' | 'yesterday'>(() => {
+    if (!editSession) return 'today';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const sessionDay = new Date(editSession.startedAt);
+    sessionDay.setHours(0, 0, 0, 0);
+    return sessionDay.getTime() === yesterday.getTime() ? 'yesterday' : 'today';
+  });
   const [resolvedDate, setResolvedDate] = useState<Date>(() => {
+    if (editSession) {
+      const d = new Date(editSession.startedAt);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   });
-  const [startTime, setStartTime] = useState<string>(() => dateToHHMM(new Date()));
-  const [userEditedTime, setUserEditedTime] = useState(false);
-  const [durationMinutes, setDurationMinutes] = useState<number | null>(null);
-  const [isCustom, setIsCustom] = useState(false);
-  const [customInput, setCustomInput] = useState('');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [teamId, setTeamId] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<string>(() =>
+    editSession ? dateToHHMM(new Date(editSession.startedAt)) : dateToHHMM(new Date()),
+  );
+  const [userEditedTime, setUserEditedTime] = useState(isEditing);
+  const [durationMinutes, setDurationMinutes] = useState<number | null>(editMinutes);
+  const [isCustom, setIsCustom] = useState(!editIsPreset && editMinutes !== null);
+  const [customInput, setCustomInput] = useState(
+    !editIsPreset && editMinutes !== null ? String(editMinutes) : '',
+  );
+  const [categoryId, setCategoryId] = useState<string | null>(
+    editSession?.categoryId ?? null,
+  );
+  const [teamId, setTeamId] = useState<string | null>(editSession?.teamId ?? null);
   const [activityId, setActivityId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(editSession?.note ?? '');
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const teamRequired = teams.length > 0;
@@ -76,7 +127,7 @@ export default function ManualEntryScreen() {
     durationMinutes !== null &&
     durationMinutes > 0 &&
     startTime.length === 5 &&
-    (entryType === 'work'
+    (isEditing || entryType === 'work'
       ? categoryId !== null && (!teamRequired || teamId !== null)
       : activityId !== null);
 
@@ -120,12 +171,22 @@ export default function ManualEntryScreen() {
     const dateStr = toLocalDateString(resolvedDate);
     const startedAt = combineDateAndTime(resolvedDate, startTime).toISOString();
     const durationSeconds = durationMinutes! * 60;
+    const endedAt = new Date(
+      new Date(startedAt).getTime() + durationSeconds * 1000,
+    ).toISOString();
 
     try {
-      if (entryType === 'work') {
-        const endedAt = new Date(
-          new Date(startedAt).getTime() + durationSeconds * 1000,
-        ).toISOString();
+      if (isEditing && editSession) {
+        await replaceSession({
+          id: editSession.id,
+          categoryId: categoryId!,
+          teamId: teamId,
+          startedAt,
+          endedAt,
+          durationSeconds,
+          note: note.trim() || null,
+        });
+      } else if (entryType === 'work') {
         const newSession: Session = {
           id: Date.now().toString(),
           categoryId: categoryId!,
@@ -157,79 +218,94 @@ export default function ManualEntryScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Registrar tempo" onBack={() => router.back()} />
+      <ScreenHeader
+        title={isEditing ? 'Editar registro' : 'Registrar tempo'}
+        onBack={() => router.back()}
+      />
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Tipo */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>TIPO</Text>
-          <View style={styles.toggleRow}>
-            <TouchableOpacity
-              style={[styles.toggleBtn, entryType === 'work' && styles.toggleBtnActive]}
-              onPress={() => setEntryType('work')}
-              activeOpacity={0.7}
-            >
-              <Text
+        {/* Tipo — oculto no modo edição (sempre trabalho) */}
+        {!isEditing && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>TIPO</Text>
+            <View style={styles.toggleRow}>
+              <TouchableOpacity
                 style={[
-                  styles.toggleBtnText,
-                  entryType === 'work' && styles.toggleBtnTextActive,
+                  styles.toggleBtn,
+                  entryType === 'work' && styles.toggleBtnActive,
                 ]}
+                onPress={() => setEntryType('work')}
+                activeOpacity={0.7}
               >
-                Trabalho
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleBtn,
-                entryType === 'personal' && styles.toggleBtnActive,
-              ]}
-              onPress={() => setEntryType('personal')}
-              activeOpacity={0.7}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    entryType === 'work' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Trabalho
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.toggleBtnText,
-                  entryType === 'personal' && styles.toggleBtnTextActive,
+                  styles.toggleBtn,
+                  entryType === 'personal' && styles.toggleBtnActive,
                 ]}
+                onPress={() => setEntryType('personal')}
+                activeOpacity={0.7}
               >
-                Pessoal
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    entryType === 'personal' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Pessoal
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Quando */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>QUANDO</Text>
-          <View style={styles.toggleRow}>
-            <TouchableOpacity
-              style={[styles.toggleBtn, day === 'today' && styles.toggleBtnActive]}
-              onPress={() => handleDayChange('today')}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.toggleBtnText,
-                  day === 'today' && styles.toggleBtnTextActive,
-                ]}
+          {isEditing ? (
+            <Text style={styles.dateLabel}>{formatDateLabel(resolvedDate)}</Text>
+          ) : (
+            <View style={styles.toggleRow}>
+              <TouchableOpacity
+                style={[styles.toggleBtn, day === 'today' && styles.toggleBtnActive]}
+                onPress={() => handleDayChange('today')}
+                activeOpacity={0.7}
               >
-                Hoje
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toggleBtn, day === 'yesterday' && styles.toggleBtnActive]}
-              onPress={() => handleDayChange('yesterday')}
-              activeOpacity={0.7}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    day === 'today' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Hoje
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.toggleBtnText,
-                  day === 'yesterday' && styles.toggleBtnTextActive,
+                  styles.toggleBtn,
+                  day === 'yesterday' && styles.toggleBtnActive,
                 ]}
+                onPress={() => handleDayChange('yesterday')}
+                activeOpacity={0.7}
               >
-                Ontem
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    day === 'yesterday' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Ontem
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Horário de início */}
@@ -320,7 +396,7 @@ export default function ManualEntryScreen() {
         </View>
 
         {/* Categoria / Equipe (Trabalho) */}
-        {entryType === 'work' && (
+        {(isEditing || entryType === 'work') && (
           <>
             <OptionPicker
               label="Categoria"
@@ -344,7 +420,7 @@ export default function ManualEntryScreen() {
         )}
 
         {/* Atividade (Pessoal) */}
-        {entryType === 'personal' && (
+        {!isEditing && entryType === 'personal' && (
           <OptionPicker
             label="Atividade"
             placeholder="Selecionar atividade"
@@ -396,6 +472,12 @@ const styles = StyleSheet.create({
   sectionLabel: {
     ...typography.sectionLabel,
     color: colors.textSecondary,
+  },
+  dateLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    paddingVertical: 4,
   },
   toggleRow: {
     flexDirection: 'row',

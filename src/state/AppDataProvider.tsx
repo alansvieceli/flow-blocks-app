@@ -78,6 +78,8 @@ interface AppDataContextValue extends AppDataState {
   ) => Promise<void>;
   updateReminders: (reminders: Reminder[]) => Promise<void>;
   appendSession: (session: Session) => Promise<void>;
+  replaceSession: (session: Session) => Promise<void>;
+  removeSession: (id: string) => Promise<void>;
   updateSessions: (sessions: Session[]) => Promise<void>;
   updateSettings: (settings: AppSettings) => Promise<void>;
   updateTeams: (teams: Team[]) => Promise<void>;
@@ -303,6 +305,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           });
         });
         await saveSessions(pruned);
+      },
+      replaceSession: async (session) => {
+        const months = state.settings.historyMonths;
+        const pruned = await new Promise<Session[]>((resolve) => {
+          setState((current) => {
+            const next = current.sessions.map((s) =>
+              s.id === session.id ? session : s,
+            );
+            const p = pruneSessionsByRetention(next, months);
+            resolve(p);
+            return { ...current, sessions: p };
+          });
+        });
+        await saveSessions(pruned);
+      },
+      removeSession: async (id) => {
+        const next = await new Promise<Session[]>((resolve) => {
+          setState((current) => {
+            const filtered = current.sessions.filter((s) => s.id !== id);
+            resolve(filtered);
+            return { ...current, sessions: filtered };
+          });
+        });
+        await saveSessions(next);
       },
       updateSessions: async (sessions) => {
         const pruned = pruneSessionsByRetention(sessions, state.settings.historyMonths);
