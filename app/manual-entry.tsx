@@ -55,6 +55,11 @@ export default function ManualEntryScreen() {
 
   const [entryType, setEntryType] = useState<'work' | 'personal'>('work');
   const [day, setDay] = useState<'today' | 'yesterday'>('today');
+  const [resolvedDate, setResolvedDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const [startTime, setStartTime] = useState<string>(() => dateToHHMM(new Date()));
   const [userEditedTime, setUserEditedTime] = useState(false);
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null);
@@ -80,11 +85,12 @@ export default function ManualEntryScreen() {
       ? addMinutesToHHMM(startTime, durationMinutes)
       : '--';
 
-  function selectedDate(): Date {
+  function handleDayChange(newDay: 'today' | 'yesterday') {
+    setDay(newDay);
     const d = new Date();
-    if (day === 'yesterday') d.setDate(d.getDate() - 1);
+    if (newDay === 'yesterday') d.setDate(d.getDate() - 1);
     d.setHours(0, 0, 0, 0);
-    return d;
+    setResolvedDate(d);
   }
 
   function handlePresetSelect(minutes: number) {
@@ -111,9 +117,8 @@ export default function ManualEntryScreen() {
 
   async function handleSave() {
     if (!canSave) return;
-    const date = selectedDate();
-    const dateStr = toLocalDateString(date);
-    const startedAt = combineDateAndTime(date, startTime).toISOString();
+    const dateStr = toLocalDateString(resolvedDate);
+    const startedAt = combineDateAndTime(resolvedDate, startTime).toISOString();
     const durationSeconds = durationMinutes! * 60;
 
     try {
@@ -198,7 +203,7 @@ export default function ManualEntryScreen() {
           <View style={styles.toggleRow}>
             <TouchableOpacity
               style={[styles.toggleBtn, day === 'today' && styles.toggleBtnActive]}
-              onPress={() => setDay('today')}
+              onPress={() => handleDayChange('today')}
               activeOpacity={0.7}
             >
               <Text
@@ -212,7 +217,7 @@ export default function ManualEntryScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.toggleBtn, day === 'yesterday' && styles.toggleBtnActive]}
-              onPress={() => setDay('yesterday')}
+              onPress={() => handleDayChange('yesterday')}
               activeOpacity={0.7}
             >
               <Text
@@ -239,7 +244,7 @@ export default function ManualEntryScreen() {
           </TouchableOpacity>
           {showTimePicker && (
             <DateTimePicker
-              value={combineDateAndTime(new Date(), startTime)}
+              value={combineDateAndTime(resolvedDate, startTime)}
               mode="time"
               is24Hour
               display="spinner"
