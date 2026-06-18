@@ -72,7 +72,11 @@ interface AppDataContextValue extends AppDataState {
   updateTeams: (teams: Team[]) => Promise<void>;
 }
 
-const DEFAULT_SETTINGS: AppSettings = { notificationsEnabled: true, historyMonths: 4 };
+const DEFAULT_SETTINGS: AppSettings = {
+  notificationsEnabled: true,
+  historyMonths: 4,
+  nudgeAbandonHours: 8,
+};
 
 function cutoffDate(months: number): Date {
   const d = new Date();

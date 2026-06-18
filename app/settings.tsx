@@ -19,6 +19,15 @@ const HISTORY_MONTHS_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   label: i === 0 ? '1 mês' : `${i + 1} meses`,
 }));
 
+const NUDGE_ABANDON_OPTIONS = [
+  { id: '1', label: '1 hora' },
+  { id: '2', label: '2 horas' },
+  { id: '4', label: '4 horas' },
+  { id: '8', label: '8 horas' },
+  { id: '12', label: '12 horas' },
+  { id: '24', label: '24 horas' },
+];
+
 function ToggleRow({
   label,
   sublabel,
@@ -96,6 +105,13 @@ export default function SettingsScreen() {
           onSelect={(id) => update({ historyMonths: Number(id) })}
           placeholder="Selecionar período"
           selectedId={String(settings.historyMonths)}
+        />
+        <OptionPicker
+          label="Descartar nudge abandonado após"
+          items={NUDGE_ABANDON_OPTIONS}
+          onSelect={(id) => update({ nudgeAbandonHours: Number(id) })}
+          placeholder="Selecionar tempo"
+          selectedId={String(settings.nudgeAbandonHours ?? 8)}
         />
         <View style={[styles.section, styles.sectionSpaced]}>
           <Pressable

@@ -6,14 +6,23 @@ beforeEach(() => AsyncStorage.clear());
 describe('settingsStorage', () => {
   it('returns defaults when nothing stored', async () => {
     const settings = await getSettings();
-    expect(settings).toEqual({ notificationsEnabled: true, historyMonths: 4 });
+    expect(settings).toEqual({
+      notificationsEnabled: true,
+      historyMonths: 4,
+      nudgeAbandonHours: 8,
+    });
   });
 
   it('saves and retrieves settings', async () => {
-    await saveSettings({ notificationsEnabled: false, historyMonths: 6 });
+    await saveSettings({
+      notificationsEnabled: false,
+      historyMonths: 6,
+      nudgeAbandonHours: 8,
+    });
     expect(await getSettings()).toEqual({
       notificationsEnabled: false,
       historyMonths: 6,
+      nudgeAbandonHours: 8,
     });
   });
 
@@ -22,13 +31,23 @@ describe('settingsStorage', () => {
     const settings = await getSettings();
     expect(settings.notificationsEnabled).toBe(true);
     expect(settings.historyMonths).toBe(4);
+    expect(settings.nudgeAbandonHours).toBe(8);
   });
 
   it('overwrites previous settings on save', async () => {
-    await saveSettings({ notificationsEnabled: true, historyMonths: 4 });
-    await saveSettings({ notificationsEnabled: false, historyMonths: 12 });
+    await saveSettings({
+      notificationsEnabled: true,
+      historyMonths: 4,
+      nudgeAbandonHours: 8,
+    });
+    await saveSettings({
+      notificationsEnabled: false,
+      historyMonths: 12,
+      nudgeAbandonHours: 4,
+    });
     const settings = await getSettings();
     expect(settings.notificationsEnabled).toBe(false);
     expect(settings.historyMonths).toBe(12);
+    expect(settings.nudgeAbandonHours).toBe(4);
   });
 });
