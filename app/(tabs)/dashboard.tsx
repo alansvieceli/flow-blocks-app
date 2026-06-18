@@ -52,25 +52,19 @@ function MetricBar({
 }: {
   value: number;
   total: number;
-  accent: 'primary' | 'alert';
+  accent: 'primary' | 'alert' | 'disabled';
 }) {
   const pct = total > 0 ? (value / total) * 100 : 0;
-  if (accent === 'primary') {
-    return (
-      <View style={styles.barTrack}>
-        <View
-          style={[
-            styles.barFill,
-            { width: `${pct}%`, backgroundColor: colors.accentFrom },
-          ]}
-        />
-      </View>
-    );
-  }
+  const fillColor =
+    accent === 'primary'
+      ? colors.accentFrom
+      : accent === 'alert'
+        ? colors.alert
+        : colors.textDisabled;
   return (
     <View style={styles.barTrack}>
       <View
-        style={[styles.barFill, { width: `${pct}%`, backgroundColor: colors.alert }]}
+        style={[styles.barFill, { width: `${pct}%`, backgroundColor: fillColor }]}
       />
     </View>
   );
@@ -92,6 +86,10 @@ function WeeklySection({
       <SectionTitle icon="calendar-outline" label="ESTA SEMANA" />
 
       <View style={styles.card}>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Total registrado</Text>
+          <Text style={styles.totalValue}>{formatMinutes(total)}</Text>
+        </View>
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
             <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
@@ -109,7 +107,7 @@ function WeeklySection({
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
             <Ionicons name="shuffle-outline" size={11} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Interrupções</Text>
+            <Text style={styles.metricLabel}>Reuniões</Text>
           </View>
           <MetricBar
             value={categoryMetrics.interruptionMinutes}
@@ -122,15 +120,19 @@ function WeeklySection({
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Ocioso</Text>
+            <Ionicons name="time-outline" size={11} color={colors.textDisabled} />
+            <Text style={[styles.metricLabel, { color: colors.textDisabled }]}>
+              Sem sessão
+            </Text>
           </View>
           <MetricBar
             value={weekIdleMinutes}
             total={categoryMetrics.totalMinutes + weekIdleMinutes}
-            accent="primary"
+            accent="disabled"
           />
-          <Text style={styles.metricValue}>{formatMinutes(weekIdleMinutes)}</Text>
+          <Text style={[styles.metricValue, { color: colors.textDisabled }]}>
+            {formatMinutes(weekIdleMinutes)}
+          </Text>
         </View>
       </View>
 
@@ -533,6 +535,24 @@ const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
     backgroundColor: colors.cardFrom,
     padding: 14,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingBottom: 10,
+    marginBottom: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.cardBorder,
+  },
+  totalLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   metricRowSpaced: { marginTop: 10 },
