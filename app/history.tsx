@@ -80,7 +80,7 @@ function groupByDay(sessions: Session[]): GroupedDay[] {
     group.sessions.push(s);
     group.totalSeconds += s.durationSeconds;
   }
-  return Array.from(map.values());
+  return Array.from(map.values()).sort((a, b) => (a.dateKey < b.dateKey ? 1 : -1));
 }
 
 function SessionCard({
@@ -130,7 +130,7 @@ export default function HistoryScreen() {
   const { categories, sessions, teams } = useAppData();
   const [filter, setFilter] = useState<FilterType>('hoje');
   const sortedSessions = [...sessions].sort(
-    (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
   );
 
   const filtered = filterSessions(sortedSessions, filter);
