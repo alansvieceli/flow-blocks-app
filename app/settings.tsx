@@ -29,22 +29,19 @@ const NUDGE_ABANDON_OPTIONS = [
   { id: '24', label: '24 horas' },
 ];
 
-const WORK_START_OPTIONS = [
-  { id: '6', label: '06:00' },
-  { id: '7', label: '07:00' },
-  { id: '8', label: '08:00' },
-  { id: '9', label: '09:00' },
-  { id: '10', label: '10:00' },
-];
+function halfHourOptions(startHour: number, endHour: number) {
+  const options = [];
+  for (let h = startHour; h <= endHour; h += 0.5) {
+    const hh = String(Math.floor(h)).padStart(2, '0');
+    const mm = h % 1 === 0 ? '00' : '30';
+    options.push({ id: String(h), label: `${hh}:${mm}` });
+  }
+  return options;
+}
 
-const WORK_END_OPTIONS = [
-  { id: '15', label: '15:00' },
-  { id: '16', label: '16:00' },
-  { id: '17', label: '17:00' },
-  { id: '18', label: '18:00' },
-  { id: '19', label: '19:00' },
-  { id: '20', label: '20:00' },
-];
+const WORK_START_OPTIONS = halfHourOptions(6, 10);
+
+const WORK_END_OPTIONS = halfHourOptions(15, 20);
 
 const LUNCH_OPTIONS = [
   { id: '30', label: '30 min' },

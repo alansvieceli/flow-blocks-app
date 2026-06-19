@@ -44,6 +44,11 @@ function formatMinutes(m: number): string {
   return `${h}h ${min}m`;
 }
 
+function pct(worked: number, available: number): string {
+  if (available === 0) return '—';
+  return `${Math.round((worked / available) * 100)}%`;
+}
+
 function MetricBar({
   value,
   total,
@@ -51,14 +56,14 @@ function MetricBar({
 }: {
   value: number;
   total: number;
-  accent: 'primary' | 'alert' | 'disabled';
+  accent: 'primary' | 'secondary' | 'disabled';
 }) {
   const pct = total > 0 ? (value / total) * 100 : 0;
   const fillColor =
     accent === 'primary'
       ? colors.accentFrom
-      : accent === 'alert'
-        ? colors.alert
+      : accent === 'secondary'
+        ? colors.accentTo
         : colors.textDisabled;
   return (
     <View style={styles.barTrack}>
@@ -73,10 +78,14 @@ function WeeklySection({
   categoryMetrics,
   teamMetrics,
   weekIdleMinutes,
+  weekWorkedMinutes,
+  weekAvailableMinutes,
 }: {
   categoryMetrics: CategoryMetrics;
   teamMetrics: TeamMetrics[];
   weekIdleMinutes: number;
+  weekWorkedMinutes: number;
+  weekAvailableMinutes: number;
 }) {
   const total = categoryMetrics.totalMinutes;
 
@@ -85,9 +94,21 @@ function WeeklySection({
       <SectionTitle icon="calendar-outline" label="ESTA SEMANA" />
 
       <View style={styles.card}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total registrado</Text>
-          <Text style={styles.totalValue}>{formatMinutes(total)}</Text>
+        <View style={styles.todayHeaderRow}>
+          <Text style={styles.todayHeaderValue}>
+            {formatMinutes(weekWorkedMinutes)}
+          </Text>
+          <Text style={styles.todayHeaderUnit}>
+            / {formatMinutes(weekAvailableMinutes)} (
+            {pct(weekWorkedMinutes, weekAvailableMinutes)})
+          </Text>
+        </View>
+        <View style={styles.headerBarRow}>
+          <MetricBar
+            value={weekWorkedMinutes}
+            total={weekAvailableMinutes}
+            accent="primary"
+          />
         </View>
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
@@ -111,7 +132,7 @@ function WeeklySection({
           <MetricBar
             value={categoryMetrics.interruptionMinutes}
             total={total}
-            accent="alert"
+            accent="secondary"
           />
           <Text style={styles.metricValue}>
             {formatMinutes(categoryMetrics.interruptionMinutes)}
@@ -322,11 +343,6 @@ function TodaySection({
   dailyMetrics: DailyMetrics;
   efficiency: WorkEfficiency;
 }) {
-  function pct(worked: number, available: number): string {
-    if (available === 0) return '—';
-    return `${Math.round((worked / available) * 100)}%`;
-  }
-
   return (
     <>
       <SectionTitle icon="today-outline" label="HOJE" />
@@ -340,7 +356,7 @@ function TodaySection({
             {pct(efficiency.todayWorkedMinutes, efficiency.todayAvailableMinutes)})
           </Text>
         </View>
-        <View style={styles.todayBarRow}>
+        <View style={styles.headerBarRow}>
           <MetricBar
             value={efficiency.todayWorkedMinutes}
             total={efficiency.todayAvailableMinutes}
@@ -370,21 +386,24 @@ function TodaySection({
           <MetricBar
             value={dailyMetrics.interruptionMinutes}
             total={dailyMetrics.totalMinutes}
-            accent="alert"
+            accent="secondary"
           />
           <Text style={styles.metricValue}>
             {formatMinutes(dailyMetrics.interruptionMinutes)}
           </Text>
         </View>
-
-        <View style={[styles.switchRow, styles.todayWeekDivider]}>
-          <Text style={styles.switchLabel}>Esta semana</Text>
-          <Text style={styles.switchValue}>
-            {formatMinutes(efficiency.weekWorkedMinutes)}
-          </Text>
-          <Text style={styles.switchUnit}>
-            / {formatMinutes(efficiency.weekAvailableMinutes)} (
-            {pct(efficiency.weekWorkedMinutes, efficiency.weekAvailableMinutes)})
+        <View style={[styles.metricRow, styles.metricRowSpaced]}>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Sem sessão</Text>
+          </View>
+          <MetricBar
+            value={efficiency.todayIdleMinutes}
+            total={efficiency.todayAvailableMinutes}
+            accent="disabled"
+          />
+          <Text style={styles.metricValue}>
+            {formatMinutes(efficiency.todayIdleMinutes)}
           </Text>
         </View>
       </View>
@@ -489,6 +508,8 @@ export default function DashboardScreen() {
           categoryMetrics={categoryMetrics}
           teamMetrics={teamMetrics}
           weekIdleMinutes={efficiency.weekIdleMinutes}
+          weekWorkedMinutes={efficiency.weekWorkedMinutes}
+          weekAvailableMinutes={efficiency.weekAvailableMinutes}
         />
 
         <HeatmapSection
@@ -524,33 +545,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardFrom,
     padding: 14,
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    paddingBottom: 10,
-    marginBottom: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.cardBorder,
-  },
-  totalLabel: {
-    ...typography.rowLabel,
-    color: colors.textSecondary,
-  },
-  totalValue: {
-    ...typography.screenTitle,
-    color: colors.textPrimary,
-  },
-  metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metricRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metricRowSpaced: { marginTop: 10 },
   metricRowBottom: { marginBottom: 8 },
-  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 96 },
+  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 84 },
   teamLabel: { flexShrink: 1, ...typography.rowLabel, color: colors.textSecondary },
   metricLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    width: 96,
+    width: 84,
   },
   metricLabel: {
     ...typography.rowLabel,
@@ -622,14 +626,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
   },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  switchLabel: { fontSize: 13, color: colors.textSecondary, flex: 1 },
-  switchValue: { ...typography.metricMedium, color: colors.textPrimary },
-  switchUnit: { fontSize: 11, color: colors.textSecondary },
   todayHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'baseline',
+    gap: 6,
     marginBottom: 8,
   },
   todayHeaderValue: {
@@ -640,15 +640,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
   },
-  todayBarRow: {
+  headerBarRow: {
     flexDirection: 'row',
     marginBottom: 14,
-  },
-  todayWeekDivider: {
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardBorder,
   },
   chartRow: { gap: 4, marginTop: 8 },
   chartLabelRow: {
