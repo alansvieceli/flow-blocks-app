@@ -9,6 +9,10 @@ import {
 } from '../../src/lib/devSeed';
 import { useAppData } from '../../src/state/AppDataProvider';
 
+// Flip to false before building for a physical device. Keep true only
+// while testing on the emulator — this gate is independent of __DEV__.
+const SHOW_DEV_SEED_BUTTON = true;
+
 export default function MoreScreen() {
   const router = useRouter();
   const {
@@ -88,7 +92,7 @@ export default function MoreScreen() {
           subtitle="Preferências e notificações"
           onPress={() => router.push('/settings')}
         />
-        {__DEV__ && (
+        {SHOW_DEV_SEED_BUTTON && (
           <ListRow
             icon="flask-outline"
             title="Gerar dados de teste"
