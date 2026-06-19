@@ -348,7 +348,7 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Daily metrics */}
         {(() => {
-          const daily = getDailyMetrics(sessions, teams, new Date());
+          const daily = getDailyMetrics(sessions, teams, new Date(), categories);
           const cols = [
             {
               label: 'TOTAL HOJE',

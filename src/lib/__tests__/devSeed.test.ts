@@ -6,7 +6,7 @@ import {
 import { Category, PersonalActivity, Team } from '../../types';
 
 const CATEGORIES: Category[] = [
-  { id: 'foco', label: 'Foco', order: 1 },
+  { id: 'foco', label: 'Foco', order: 1, isFocus: true },
   { id: 'reuniao', label: 'Reunião', order: 2 },
 ];
 
@@ -78,7 +78,9 @@ describe('generateMockSessions', () => {
   });
 
   it('falls back to focus categories when no non-focus category exists', () => {
-    const onlyFocus: Category[] = [{ id: 'foco', label: 'Foco', order: 1 }];
+    const onlyFocus: Category[] = [
+      { id: 'foco', label: 'Foco', order: 1, isFocus: true },
+    ];
     const result = generateMockSessions(onlyFocus, TEAMS, { days: 4 });
     expect(result.every((s) => s.categoryId === 'foco')).toBe(true);
   });

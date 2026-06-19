@@ -474,10 +474,10 @@ export default function DashboardScreen() {
     lunchDurationMinutes: settings.lunchDurationMinutes,
   };
 
-  const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
+  const categoryMetrics = getWeeklyMetricsByCategory(sessions, today, categories);
   const teamMetrics = getWeeklyMetricsByTeam(sessions, teams, today);
   const efficiency = getWorkEfficiency(sessions, schedule, today);
-  const dailyMetrics = getDailyMetrics(sessions, teams, today);
+  const dailyMetrics = getDailyMetrics(sessions, teams, today, categories);
 
   return (
     <View style={styles.container}>

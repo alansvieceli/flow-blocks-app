@@ -31,8 +31,8 @@ export function generateMockSessions(
   const workStartHour = options.workStartHour ?? 8;
   const workEndHour = options.workEndHour ?? 18;
 
-  const focusCategories = categories.filter((c) => isFocusCategory(c.id));
-  const otherCategories = categories.filter((c) => !isFocusCategory(c.id));
+  const focusCategories = categories.filter((c) => isFocusCategory(c.id, categories));
+  const otherCategories = categories.filter((c) => !isFocusCategory(c.id, categories));
   if (focusCategories.length === 0 && otherCategories.length === 0) return [];
 
   const sessions: Session[] = [];
