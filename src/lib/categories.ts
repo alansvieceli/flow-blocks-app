@@ -1,6 +1,11 @@
 import { Category, CategoryId } from '../types';
 
-export const LOCKED_CATEGORY: Category = { id: 'foco', label: 'Foco', order: 1 };
+export const LOCKED_CATEGORY: Category = {
+  id: 'foco',
+  label: 'Foco',
+  order: 1,
+  isFocus: true,
+};
 
 export const DEFAULT_CATEGORIES: Category[] = [
   LOCKED_CATEGORY,
@@ -25,6 +30,11 @@ export function getCategoryLabel(
   return categories.find((c) => c.id === id)?.label ?? LEGACY_CATEGORY_LABELS[id] ?? id;
 }
 
-export function isFocusCategory(id: CategoryId): boolean {
+export function isFocusCategory(
+  id: CategoryId,
+  categories: Category[] = DEFAULT_CATEGORIES,
+): boolean {
+  const found = categories.find((c) => c.id === id);
+  if (found) return found.isFocus === true;
   return id === 'foco' || id === 'foco_profundo';
 }

@@ -6,9 +6,9 @@ import {
 } from './categories';
 
 describe('DEFAULT_CATEGORIES', () => {
-  it('has the installation defaults with Foco first', () => {
+  it('has the installation defaults with Foco first and marked as focus', () => {
     expect(DEFAULT_CATEGORIES).toEqual([
-      { id: 'foco', label: 'Foco', order: 1 },
+      { id: 'foco', label: 'Foco', order: 1, isFocus: true },
       { id: 'reuniao', label: 'Reunião', order: 2 },
     ]);
   });
@@ -34,10 +34,26 @@ describe('getCategoryLabel', () => {
 });
 
 describe('isFocusCategory', () => {
-  it('recognizes current and legacy focus category ids', () => {
+  it('recognizes current and legacy focus category ids via the default list', () => {
     expect(isFocusCategory('foco')).toBe(true);
     expect(isFocusCategory('foco_profundo')).toBe(true);
     expect(isFocusCategory('reuniao')).toBe(false);
+  });
+
+  it('returns true for a custom category explicitly marked isFocus', () => {
+    const categories = [{ id: 'codigo', label: 'Código', order: 2, isFocus: true }];
+    expect(isFocusCategory('codigo', categories)).toBe(true);
+  });
+
+  it('returns false for a custom category not marked isFocus', () => {
+    const categories = [{ id: 'codigo', label: 'Código', order: 2 }];
+    expect(isFocusCategory('codigo', categories)).toBe(false);
+  });
+
+  it('falls back to legacy ids when the category is not in the list', () => {
+    const categories = [{ id: 'reuniao', label: 'Reunião', order: 2 }];
+    expect(isFocusCategory('foco_profundo', categories)).toBe(true);
+    expect(isFocusCategory('admin', categories)).toBe(false);
   });
 });
 

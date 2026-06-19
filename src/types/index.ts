@@ -4,6 +4,7 @@ export interface Category {
   id: CategoryId;
   label: string;
   order: number;
+  isFocus?: boolean;
 }
 
 export interface Team {
