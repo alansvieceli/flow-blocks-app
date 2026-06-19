@@ -382,7 +382,7 @@ export default function HomeScreen() {
           <View style={styles.card}>
             <View style={styles.recordingRow}>
               <View style={styles.recordingDot} />
-              <Text style={styles.recordingLabel}>Gravando</Text>
+              <Text style={styles.recordingLabel}>Em andamento</Text>
             </View>
             <Text style={styles.timerText}>{formatDuration(elapsed)}</Text>
             <View style={styles.chipsRow}>

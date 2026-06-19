@@ -21,7 +21,7 @@ function ActiveSessionBanner() {
     >
       <View style={styles.bannerLeft}>
         <View style={styles.recordingDot} />
-        <Text style={styles.bannerRecording}>Gravando</Text>
+        <Text style={styles.bannerRecording}>Em andamento</Text>
       </View>
       <Text style={styles.bannerTimer}>{formatDuration(elapsed)}</Text>
       <Text style={styles.bannerHint}>▶ Início</Text>
