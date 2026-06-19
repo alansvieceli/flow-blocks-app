@@ -39,6 +39,8 @@ export interface TeamBalanceAlert {
 
 export interface DailyMetrics {
   totalMinutes: number;
+  deepWorkMinutes: number;
+  interruptionMinutes: number;
   topTeams: { teamName: string; minutes: number }[];
 }
 
@@ -122,33 +124,6 @@ export function getHeatmapData(
     matrix[displayDay][hour] += sessionMinutes(s);
   }
   return matrix;
-}
-
-export function getStreak(sessions: Session[], today: Date): number {
-  const todayStr = toLocalDateString(today);
-  const sessionDates = new Set(
-    sessions.map((s) => toLocalDateString(new Date(s.endedAt))),
-  );
-
-  // Check if today has a session; if not, start counting from yesterday
-  const startStr = sessionDates.has(todayStr)
-    ? todayStr
-    : (() => {
-        const y = new Date(today);
-        y.setDate(y.getDate() - 1);
-        return toLocalDateString(y);
-      })();
-
-  if (!sessionDates.has(startStr)) return 0;
-
-  let streak = 0;
-  const [year, month, day] = startStr.split('-').map(Number);
-  const cursor = new Date(year, month - 1, day, 12);
-  while (sessionDates.has(toLocalDateString(cursor))) {
-    streak++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
 }
 
 export function getContextSwitches(
@@ -236,11 +211,19 @@ export function getDailyMetrics(
     (s) => toLocalDateString(new Date(s.startedAt)) === todayStr,
   );
 
-  const totalMinutes = todaySessions.reduce((acc, s) => acc + sessionMinutes(s), 0);
+  let deepWorkMinutes = 0;
+  let interruptionMinutes = 0;
   const minutesById = new Map<string, number>();
   for (const s of todaySessions) {
-    if (!s.teamId) continue;
-    minutesById.set(s.teamId, (minutesById.get(s.teamId) ?? 0) + sessionMinutes(s));
+    const m = sessionMinutes(s);
+    if (isFocusCategory(s.categoryId)) {
+      deepWorkMinutes += m;
+    } else {
+      interruptionMinutes += m;
+    }
+    if (s.teamId) {
+      minutesById.set(s.teamId, (minutesById.get(s.teamId) ?? 0) + m);
+    }
   }
 
   const topTeams = teams
@@ -249,7 +232,12 @@ export function getDailyMetrics(
     .sort((a, b) => b.minutes - a.minutes)
     .slice(0, 2);
 
-  return { totalMinutes, topTeams };
+  return {
+    totalMinutes: deepWorkMinutes + interruptionMinutes,
+    deepWorkMinutes,
+    interruptionMinutes,
+    topTeams,
+  };
 }
 
 export function getDayAvailableMinutes(schedule: WorkSchedule): number {
