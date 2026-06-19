@@ -7,6 +7,7 @@ import {
   Modal,
   Platform,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -26,12 +27,14 @@ export default function CategoriesScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputName, setInputName] = useState('');
   const [inputOrder, setInputOrder] = useState('');
+  const [inputIsFocus, setInputIsFocus] = useState(false);
   const [inputError, setInputError] = useState('');
 
   function openCreate() {
     setEditingId(null);
     setInputName('');
     setInputOrder(String(Math.max(0, ...categories.map((c) => c.order)) + 1));
+    setInputIsFocus(false);
     setInputError('');
     setModalVisible(true);
   }
@@ -40,6 +43,7 @@ export default function CategoriesScreen() {
     setEditingId(category.id);
     setInputName(category.label);
     setInputOrder(String(category.order));
+    setInputIsFocus(category.isFocus ?? false);
     setInputError('');
     setModalVisible(true);
   }
@@ -61,8 +65,13 @@ export default function CategoriesScreen() {
     }
 
     const updated = editingId
-      ? categories.map((c) => (c.id === editingId ? { ...c, label, order } : c))
-      : [...categories, { id: Date.now().toString(), label, order }];
+      ? categories.map((c) =>
+          c.id === editingId ? { ...c, label, order, isFocus: inputIsFocus } : c,
+        )
+      : [
+          ...categories,
+          { id: Date.now().toString(), label, order, isFocus: inputIsFocus },
+        ];
 
     await updateCategories(updated);
     setModalVisible(false);
@@ -99,11 +108,9 @@ export default function CategoriesScreen() {
           renderItem={({ item }) => (
             <Card style={styles.row}>
               <Ionicons
-                name={isLockedCategory(item.id) ? 'flash-outline' : 'albums-outline'}
+                name={item.isFocus ? 'flash-outline' : 'albums-outline'}
                 size={18}
-                color={
-                  isLockedCategory(item.id) ? colors.accentFrom : colors.textSecondary
-                }
+                color={item.isFocus ? colors.accentFrom : colors.textSecondary}
               />
               <Text style={styles.rowName} numberOfLines={1}>
                 {item.label}
@@ -171,6 +178,15 @@ export default function CategoriesScreen() {
                 setInputError('');
               }}
             />
+            <View style={styles.focusToggleRow}>
+              <Text style={styles.focusToggleLabel}>Conta como Foco</Text>
+              <Switch
+                value={inputIsFocus}
+                onValueChange={setInputIsFocus}
+                trackColor={{ false: colors.cardBorder, true: colors.accentFrom }}
+                thumbColor={inputIsFocus ? colors.textPrimary : colors.textSecondary}
+              />
+            </View>
             {inputError ? <Text style={styles.errorText}>{inputError}</Text> : null}
             <View style={styles.modalBtns}>
               <TouchableOpacity
@@ -246,6 +262,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputBackground,
   },
   inputError: { borderColor: colors.destructiveFrom },
+  focusToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  focusToggleLabel: { ...typography.rowLabel, color: colors.textPrimary },
   errorText: { ...typography.rowLabel, color: colors.destructiveFrom },
   modalBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
   cancelBtn: {
