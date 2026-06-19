@@ -20,7 +20,11 @@ import { typography } from '../src/theme/typography';
 import { PersonalActivity } from '../src/types';
 
 export default function ActivitiesScreen() {
-  const { personalActivities: activities, updatePersonalActivities } = useAppData();
+  const {
+    personalActivities: activities,
+    personalDailyPlans,
+    updatePersonalActivities,
+  } = useAppData();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputName, setInputName] = useState('');
@@ -57,6 +61,18 @@ export default function ActivitiesScreen() {
   }
 
   async function handleDelete(id: string) {
+    const linkedCount = personalDailyPlans.reduce(
+      (acc, plan) => acc + plan.entries.filter((e) => e.activityId === id).length,
+      0,
+    );
+    if (linkedCount > 0) {
+      Alert.alert(
+        'Não é possível excluir',
+        `${linkedCount} registro(s) de plano diário usam essa atividade. Remova-os antes de excluir a atividade.`,
+      );
+      return;
+    }
+
     Alert.alert('Excluir atividade', 'Deseja remover esta atividade?', [
       { text: 'Cancelar', style: 'cancel' },
       {

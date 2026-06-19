@@ -22,7 +22,7 @@ import { typography } from '../src/theme/typography';
 import { Category } from '../src/types';
 
 export default function CategoriesScreen() {
-  const { categories, updateCategories } = useAppData();
+  const { categories, sessions, updateCategories } = useAppData();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputName, setInputName] = useState('');
@@ -79,6 +79,16 @@ export default function CategoriesScreen() {
 
   async function handleDelete(id: string) {
     if (isLockedCategory(id)) return;
+
+    const linkedCount = sessions.filter((s) => s.categoryId === id).length;
+    if (linkedCount > 0) {
+      Alert.alert(
+        'Não é possível excluir',
+        `${linkedCount} sessão(ões) registrada(s) usam essa categoria. Remova-as no Histórico antes de excluir a categoria.`,
+      );
+      return;
+    }
+
     Alert.alert('Excluir categoria', 'Deseja remover esta categoria?', [
       { text: 'Cancelar', style: 'cancel' },
       {
