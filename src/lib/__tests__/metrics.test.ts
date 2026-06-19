@@ -2,7 +2,6 @@ import {
   getDailyMetrics,
   getContextSwitches,
   getHeatmapData,
-  getStreak,
   getTeamBalanceAlerts,
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
@@ -165,55 +164,6 @@ describe('getHeatmapData', () => {
   });
 });
 
-// ── getStreak ───────────────────────────────────────────────────────────────
-
-describe('getStreak', () => {
-  it('returns 0 when no sessions', () => {
-    expect(getStreak([], TODAY)).toBe(0);
-  });
-
-  it('returns 0 when no session yesterday and none today', () => {
-    const old = makeSession({
-      startedAt: '2026-06-10T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    expect(getStreak([old], TODAY)).toBe(0);
-  });
-
-  it('counts consecutive days ending today', () => {
-    const s1 = makeSession({
-      startedAt: '2026-06-14T10:00:00.000Z',
-      endedAt: '2026-06-14T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    const s2 = makeSession({
-      startedAt: '2026-06-15T10:00:00.000Z',
-      endedAt: '2026-06-15T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    const s3 = makeSession({
-      startedAt: '2026-06-16T10:00:00.000Z',
-      endedAt: '2026-06-16T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    expect(getStreak([s1, s2, s3], TODAY)).toBe(3);
-  });
-
-  it('counts consecutive days ending yesterday when no session today', () => {
-    const s1 = makeSession({
-      startedAt: '2026-06-14T10:00:00.000Z',
-      endedAt: '2026-06-14T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    const s2 = makeSession({
-      startedAt: '2026-06-15T10:00:00.000Z',
-      endedAt: '2026-06-15T10:00:00.000Z',
-      durationSeconds: 60,
-    });
-    expect(getStreak([s1, s2], TODAY)).toBe(2);
-  });
-});
-
 // ── getContextSwitches ──────────────────────────────────────────────────────
 
 describe('getContextSwitches', () => {
@@ -327,6 +277,8 @@ describe('getDailyMetrics', () => {
     const result = getDailyMetrics([SESSION_MON_FOCUS], [TEAM_A], TODAY);
     // SESSION_MON_FOCUS is on Mon 15, TODAY is Tue 16 → no sessions today
     expect(result.totalMinutes).toBe(0);
+    expect(result.deepWorkMinutes).toBe(0);
+    expect(result.interruptionMinutes).toBe(0);
     expect(result.topTeams).toEqual([]);
   });
 
@@ -346,6 +298,23 @@ describe('getDailyMetrics', () => {
     expect(result.topTeams).toHaveLength(2);
     expect(result.topTeams[0]).toEqual({ teamName: 'Team A', minutes: 60 });
     expect(result.topTeams[1]).toEqual({ teamName: 'Team B', minutes: 30 });
+  });
+
+  it('splits today minutes into deepWork and interruption by category', () => {
+    const focus = makeSession({
+      startedAt: '2026-06-16T09:00:00.000Z',
+      durationSeconds: 3600, // 60 min
+      categoryId: 'foco_profundo',
+    });
+    const meeting = makeSession({
+      startedAt: '2026-06-16T11:00:00.000Z',
+      durationSeconds: 1200, // 20 min
+      categoryId: 'reunioes',
+    });
+    const result = getDailyMetrics([focus, meeting], [], TODAY);
+    expect(result.deepWorkMinutes).toBe(60);
+    expect(result.interruptionMinutes).toBe(20);
+    expect(result.totalMinutes).toBe(80);
   });
 
   it('uses local date for late-night sessions', () => {
