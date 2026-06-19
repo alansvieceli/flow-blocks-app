@@ -5,6 +5,7 @@ import { ListRow, ScreenScaffold, SectionHeader } from '../../src/components/com
 import {
   generateMockPersonalDailyPlans,
   generateMockSessions,
+  generateMockTeams,
 } from '../../src/lib/devSeed';
 import { useAppData } from '../../src/state/AppDataProvider';
 
@@ -18,10 +19,16 @@ export default function MoreScreen() {
     sessions,
     updatePersonalDailyPlans,
     updateSessions,
+    updateTeams,
   } = useAppData();
 
   async function handleSeedMockData() {
-    const mockSessions = generateMockSessions(categories, teams);
+    const seedTeams = teams.length === 0 ? generateMockTeams() : teams;
+    if (teams.length === 0) {
+      await updateTeams(seedTeams);
+    }
+
+    const mockSessions = generateMockSessions(categories, seedTeams);
     const mockPlans = generateMockPersonalDailyPlans(personalActivities);
 
     await updateSessions([...sessions, ...mockSessions]);
@@ -32,7 +39,7 @@ export default function MoreScreen() {
 
     Alert.alert(
       'Dados de teste gerados',
-      `${mockSessions.length} sessões e ${mockPlans.length} dias de atividades pessoais adicionados.`,
+      `${mockSessions.length} sessões, ${seedTeams.length} equipes e ${mockPlans.length} dias de atividades pessoais adicionados.`,
     );
   }
 

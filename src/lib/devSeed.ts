@@ -15,6 +15,13 @@ function pick<T>(items: T[]): T | null {
   return items[randomInt(0, items.length - 1)];
 }
 
+export function generateMockTeams(): Team[] {
+  return [
+    { id: randomId(), name: 'Equipe A', order: 1, maxWeeklyPercent: 60 },
+    { id: randomId(), name: 'Equipe B', order: 2, maxWeeklyPercent: null },
+  ];
+}
+
 export function generateMockSessions(
   categories: Category[],
   teams: Team[],

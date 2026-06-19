@@ -1,4 +1,8 @@
-import { generateMockPersonalDailyPlans, generateMockSessions } from '../devSeed';
+import {
+  generateMockPersonalDailyPlans,
+  generateMockSessions,
+  generateMockTeams,
+} from '../devSeed';
 import { Category, PersonalActivity, Team } from '../../types';
 
 const CATEGORIES: Category[] = [
@@ -15,6 +19,15 @@ const ACTIVITIES: PersonalActivity[] = [
   { id: 'video_game', name: 'Video Game' },
   { id: 'estudo', name: 'Estudo' },
 ];
+
+describe('generateMockTeams', () => {
+  it('returns 2 teams with distinct ids and names', () => {
+    const result = generateMockTeams();
+    expect(result).toHaveLength(2);
+    expect(result[0].id).not.toBe(result[1].id);
+    expect(result.map((t) => t.name)).toEqual(['Equipe A', 'Equipe B']);
+  });
+});
 
 describe('generateMockSessions', () => {
   it('returns an empty array when there are no categories', () => {
