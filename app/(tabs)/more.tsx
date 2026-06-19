@@ -1,10 +1,40 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ListRow, ScreenScaffold, SectionHeader } from '../../src/components/common';
+import {
+  generateMockPersonalDailyPlans,
+  generateMockSessions,
+} from '../../src/lib/devSeed';
+import { useAppData } from '../../src/state/AppDataProvider';
 
 export default function MoreScreen() {
   const router = useRouter();
+  const {
+    categories,
+    teams,
+    personalActivities,
+    personalDailyPlans,
+    sessions,
+    updatePersonalDailyPlans,
+    updateSessions,
+  } = useAppData();
+
+  async function handleSeedMockData() {
+    const mockSessions = generateMockSessions(categories, teams);
+    const mockPlans = generateMockPersonalDailyPlans(personalActivities);
+
+    await updateSessions([...sessions, ...mockSessions]);
+
+    const mockDates = new Set(mockPlans.map((p) => p.date));
+    const keptPlans = personalDailyPlans.filter((p) => !mockDates.has(p.date));
+    await updatePersonalDailyPlans([...keptPlans, ...mockPlans]);
+
+    Alert.alert(
+      'Dados de teste gerados',
+      `${mockSessions.length} sessões e ${mockPlans.length} dias de atividades pessoais adicionados.`,
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -51,6 +81,14 @@ export default function MoreScreen() {
           subtitle="Preferências e notificações"
           onPress={() => router.push('/settings')}
         />
+        {__DEV__ && (
+          <ListRow
+            icon="flask-outline"
+            title="Gerar dados de teste"
+            subtitle="Preenche os últimos 4 dias com sessões e atividades (dev)"
+            onPress={handleSeedMockData}
+          />
+        )}
       </ScreenScaffold>
     </View>
   );
