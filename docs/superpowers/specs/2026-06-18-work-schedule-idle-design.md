@@ -12,10 +12,12 @@ Permitir que o usuário configure sua janela de trabalho diária (horário de in
 Três novos campos adicionados à entidade `settings` existente:
 
 ```ts
-workStartHour: number; // default: 8  (hora inteira, 0-23)
-workEndHour: number; // default: 18 (hora inteira, 0-23)
+workStartHour: number; // default: 8  (0-23, em incrementos de 0.5 — ex: 8.5 = 08:30)
+workEndHour: number; // default: 18 (0-23, em incrementos de 0.5 — ex: 18.5 = 18:30)
 lunchDurationMinutes: number; // default: 60
 ```
+
+> **Atualização (2026-06-19):** a UI de Configurações passou a oferecer opções de meia hora (ex: 08:30, 09:30, 18:30) além das horas cheias. O valor continua armazenado como `number`, agora podendo ser fracionário (`8.5`); os cálculos de disponibilidade/ocioso e o heatmap já operam sobre minutos e funcionam sem alteração com horas fracionárias.
 
 **Cálculo de tempo disponível por dia útil:**
 
@@ -39,8 +41,8 @@ Nova seção **"Jornada de trabalho"** em `Mais → Configurações`, adicionada
 
 **Campos:**
 
-- **Início** — seletor de hora (ex: `08:00`) → salva `workStartHour`
-- **Fim** — seletor de hora (ex: `18:00`) → salva `workEndHour`
+- **Início** — seletor de hora em incrementos de 30 min (ex: `06:00`–`10:00`) → salva `workStartHour`
+- **Fim** — seletor de hora em incrementos de 30 min (ex: `15:00`–`20:00`) → salva `workEndHour`
 - **Almoço** — seletor com opções fixas: 30 min, 45 min, 60 min, 90 min → salva `lunchDurationMinutes`
 
 **Comportamento:**
