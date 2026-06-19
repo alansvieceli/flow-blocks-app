@@ -2,15 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppHeader } from '../../src/components/AppHeader';
-import { toLocalDateString } from '../../src/lib/localDate';
 import {
   CategoryMetrics,
+  DailyMetrics,
   TeamMetrics,
   WorkEfficiency,
   WorkSchedule,
   getDailyMetrics,
   getHeatmapData,
-  getStreak,
   getWeeklyMetricsByCategory,
   getWeeklyMetricsByTeam,
   getWorkEfficiency,
@@ -318,57 +317,13 @@ function HeatmapSection({
   );
 }
 
-function ExtrasSection({
-  sessions,
-  teams,
-  today,
+function TodaySection({
+  dailyMetrics,
+  efficiency,
 }: {
-  sessions: Session[];
-  teams: Team[];
-  today: Date;
+  dailyMetrics: DailyMetrics;
+  efficiency: WorkEfficiency;
 }) {
-  const streak = getStreak(sessions, today);
-  const dailyMetrics = getDailyMetrics(sessions, teams, today);
-  const todayStr = toLocalDateString(today);
-  const hasTodaySession = sessions.some(
-    (s) => toLocalDateString(new Date(s.endedAt)) === todayStr,
-  );
-
-  return (
-    <>
-      <SectionTitle icon="flame-outline" label="SEQUÊNCIA" />
-      <View style={styles.card}>
-        <View style={styles.streakRow}>
-          <Text style={styles.streakNumber}>{streak}</Text>
-          <View style={styles.streakLabels}>
-            <Text style={styles.streakLabel}>dias consecutivos</Text>
-            <Text style={styles.streakSub}>
-              {hasTodaySession ? 'Inclui hoje' : 'Até ontem'}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {dailyMetrics.totalMinutes > 0 && (
-        <>
-          <SectionTitle icon="today-outline" label="HOJE" />
-          <View style={styles.card}>
-            <Text style={styles.dailyTotal}>
-              {formatMinutes(dailyMetrics.totalMinutes)}
-            </Text>
-            {dailyMetrics.topTeams.map((t) => (
-              <Text key={t.teamName} style={styles.dailyTeam}>
-                {t.teamName}: {formatMinutes(t.minutes)}
-              </Text>
-            ))}
-          </View>
-        </>
-      )}
-    </>
-  );
-}
-
-function EfficiencySection({ efficiency }: { efficiency: WorkEfficiency }) {
   function pct(worked: number, available: number): string {
     if (available === 0) return '—';
     return `${Math.round((worked / available) * 100)}%`;
@@ -376,19 +331,55 @@ function EfficiencySection({ efficiency }: { efficiency: WorkEfficiency }) {
 
   return (
     <>
-      <SectionTitle icon="speedometer-outline" label="APROVEITAMENTO" />
+      <SectionTitle icon="today-outline" label="HOJE" />
       <View style={styles.card}>
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Hoje</Text>
-          <Text style={styles.switchValue}>
+        <View style={styles.todayHeaderRow}>
+          <Text style={styles.todayHeaderValue}>
             {formatMinutes(efficiency.todayWorkedMinutes)}
           </Text>
-          <Text style={styles.switchUnit}>
+          <Text style={styles.todayHeaderUnit}>
             / {formatMinutes(efficiency.todayAvailableMinutes)} (
             {pct(efficiency.todayWorkedMinutes, efficiency.todayAvailableMinutes)})
           </Text>
         </View>
-        <View style={[styles.switchRow, styles.switchRowSpaced]}>
+        <View style={styles.todayBarRow}>
+          <MetricBar
+            value={efficiency.todayWorkedMinutes}
+            total={efficiency.todayAvailableMinutes}
+            accent="primary"
+          />
+        </View>
+
+        <View style={styles.metricRow}>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Foco</Text>
+          </View>
+          <MetricBar
+            value={dailyMetrics.deepWorkMinutes}
+            total={dailyMetrics.totalMinutes}
+            accent="primary"
+          />
+          <Text style={styles.metricValue}>
+            {formatMinutes(dailyMetrics.deepWorkMinutes)}
+          </Text>
+        </View>
+        <View style={[styles.metricRow, styles.metricRowSpaced]}>
+          <View style={styles.metricLabelRow}>
+            <Ionicons name="shuffle-outline" size={11} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Reuniões</Text>
+          </View>
+          <MetricBar
+            value={dailyMetrics.interruptionMinutes}
+            total={dailyMetrics.totalMinutes}
+            accent="alert"
+          />
+          <Text style={styles.metricValue}>
+            {formatMinutes(dailyMetrics.interruptionMinutes)}
+          </Text>
+        </View>
+
+        <View style={[styles.switchRow, styles.todayWeekDivider]}>
           <Text style={styles.switchLabel}>Esta semana</Text>
           <Text style={styles.switchValue}>
             {formatMinutes(efficiency.weekWorkedMinutes)}
@@ -488,11 +479,14 @@ export default function DashboardScreen() {
   const categoryMetrics = getWeeklyMetricsByCategory(sessions, today);
   const teamMetrics = getWeeklyMetricsByTeam(sessions, teams, today);
   const efficiency = getWorkEfficiency(sessions, schedule, today);
+  const dailyMetrics = getDailyMetrics(sessions, teams, today);
 
   return (
     <View style={styles.container}>
       <AppHeader title="Painel" />
       <ScrollView contentContainerStyle={styles.content}>
+        <TodaySection dailyMetrics={dailyMetrics} efficiency={efficiency} />
+
         <WeeklySection
           categoryMetrics={categoryMetrics}
           teamMetrics={teamMetrics}
@@ -505,10 +499,6 @@ export default function DashboardScreen() {
           teams={teams}
           schedule={schedule}
         />
-
-        <ExtrasSection sessions={sessions} teams={teams} today={today} />
-
-        <EfficiencySection efficiency={efficiency} />
 
         <PersonalChartSection />
       </ScrollView>
@@ -634,22 +624,34 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
   },
-  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  streakNumber: { ...typography.metricLarge, color: colors.accentFrom },
-  streakLabels: { gap: 2 },
-  streakLabel: { ...typography.rowLabel, color: colors.textPrimary, fontWeight: '600' },
-  streakSub: { fontSize: 11, color: colors.textSecondary },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  switchRowSpaced: { marginTop: 8 },
   switchLabel: { fontSize: 13, color: colors.textSecondary, flex: 1 },
   switchValue: { ...typography.metricMedium, color: colors.textPrimary },
   switchUnit: { fontSize: 11, color: colors.textSecondary },
-  dailyTotal: {
-    ...typography.metricMedium,
-    color: colors.textPrimary,
-    marginBottom: 4,
+  todayHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 8,
   },
-  dailyTeam: { ...typography.rowLabel, color: colors.textSecondary },
+  todayHeaderValue: {
+    ...typography.screenTitle,
+    color: colors.textPrimary,
+  },
+  todayHeaderUnit: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  todayBarRow: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  todayWeekDivider: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.cardBorder,
+  },
   chartRow: { gap: 4, marginTop: 8 },
   chartLabelRow: {
     flexDirection: 'row',
