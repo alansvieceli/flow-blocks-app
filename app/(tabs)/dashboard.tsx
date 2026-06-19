@@ -92,7 +92,7 @@ function WeeklySection({
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
             <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Foco Profundo</Text>
+            <Text style={styles.metricLabel}>Foco</Text>
           </View>
           <MetricBar
             value={categoryMetrics.deepWorkMinutes}
@@ -127,9 +127,7 @@ function WeeklySection({
             total={categoryMetrics.totalMinutes + weekIdleMinutes}
             accent="disabled"
           />
-          <Text style={[styles.metricValue, { color: colors.textDisabled }]}>
-            {formatMinutes(weekIdleMinutes)}
-          </Text>
+          <Text style={styles.metricValue}>{formatMinutes(weekIdleMinutes)}</Text>
         </View>
       </View>
 
