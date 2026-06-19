@@ -1,4 +1,4 @@
-import { Session, Team } from '../types';
+import { Category, Session, Team } from '../types';
 import { isFocusCategory } from './categories';
 import { getLocalWeekEnd, getLocalWeekStart, toLocalDateString } from './localDate';
 
@@ -58,13 +58,14 @@ function sessionMinutes(s: Session): number {
 export function getWeeklyMetricsByCategory(
   sessions: Session[],
   today: Date,
+  categories?: Category[],
 ): CategoryMetrics {
   const weekly = sessions.filter((s) => isCurrentWeek(s, today));
   let deepWorkMinutes = 0;
   let interruptionMinutes = 0;
   for (const s of weekly) {
     const m = sessionMinutes(s);
-    if (isFocusCategory(s.categoryId)) {
+    if (isFocusCategory(s.categoryId, categories)) {
       deepWorkMinutes += m;
     } else {
       interruptionMinutes += m;
@@ -205,6 +206,7 @@ export function getDailyMetrics(
   sessions: Session[],
   teams: Team[],
   today: Date,
+  categories?: Category[],
 ): DailyMetrics {
   const todayStr = toLocalDateString(today);
   const todaySessions = sessions.filter(
@@ -216,7 +218,7 @@ export function getDailyMetrics(
   const minutesById = new Map<string, number>();
   for (const s of todaySessions) {
     const m = sessionMinutes(s);
-    if (isFocusCategory(s.categoryId)) {
+    if (isFocusCategory(s.categoryId, categories)) {
       deepWorkMinutes += m;
     } else {
       interruptionMinutes += m;

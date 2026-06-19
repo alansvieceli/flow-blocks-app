@@ -91,6 +91,30 @@ describe('getWeeklyMetricsByCategory', () => {
     expect(result.interruptionMinutes).toBe(30);
     expect(result.totalMinutes).toBe(90);
   });
+
+  it('classifies a custom category as deep work when the categories list marks it isFocus', () => {
+    const customFocus = makeSession({
+      startedAt: '2026-06-15T09:00:00.000Z',
+      durationSeconds: 1800, // 30 min
+      categoryId: 'codigo',
+    });
+    const categories = [{ id: 'codigo', label: 'Código', order: 2, isFocus: true }];
+    const result = getWeeklyMetricsByCategory([customFocus], TODAY, categories);
+    expect(result.deepWorkMinutes).toBe(30);
+    expect(result.interruptionMinutes).toBe(0);
+  });
+
+  it('classifies a custom category as interruption when not marked isFocus', () => {
+    const customOther = makeSession({
+      startedAt: '2026-06-15T09:00:00.000Z',
+      durationSeconds: 1800, // 30 min
+      categoryId: 'codigo',
+    });
+    const categories = [{ id: 'codigo', label: 'Código', order: 2 }];
+    const result = getWeeklyMetricsByCategory([customOther], TODAY, categories);
+    expect(result.deepWorkMinutes).toBe(0);
+    expect(result.interruptionMinutes).toBe(30);
+  });
 });
 
 // ── getWeeklyMetricsByTeam ──────────────────────────────────────────────────
@@ -351,6 +375,18 @@ describe('getDailyMetrics', () => {
     });
     const result = getDailyMetrics([s1, s2, s3], [TEAM_A, TEAM_B, TEAM_C], TODAY);
     expect(result.topTeams).toHaveLength(2);
+  });
+
+  it('classifies a custom category using the categories param', () => {
+    const customFocus = makeSession({
+      startedAt: '2026-06-16T09:00:00.000Z',
+      durationSeconds: 1800, // 30 min
+      categoryId: 'codigo',
+    });
+    const categories = [{ id: 'codigo', label: 'Código', order: 2, isFocus: true }];
+    const result = getDailyMetrics([customFocus], [], TODAY, categories);
+    expect(result.deepWorkMinutes).toBe(30);
+    expect(result.interruptionMinutes).toBe(0);
   });
 });
 
