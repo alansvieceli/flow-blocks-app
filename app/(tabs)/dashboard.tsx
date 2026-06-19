@@ -22,6 +22,15 @@ import { Category, Session, Team } from '../../src/types';
 
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const HOUR_LABELS = [0, 6, 12, 18];
+const dashboardBarColors = {
+  focus: '#A78BFA',
+  meetings: '#60A5FA',
+  idle: '#64748B',
+  teams: '#8B7AD8',
+  track: '#25263A',
+  personal: '#34D399',
+  personalTrack: '#1F3433',
+} as const;
 
 function SectionTitle({
   icon,
@@ -44,6 +53,10 @@ function formatMinutes(m: number): string {
   return `${h}h ${min}m`;
 }
 
+function formatMetricValue(minutes: number): string {
+  return minutes === 0 ? 'Sem registros' : formatMinutes(minutes);
+}
+
 function pct(worked: number, available: number): string {
   if (available === 0) return '—';
   return `${Math.round((worked / available) * 100)}%`;
@@ -56,15 +69,17 @@ function MetricBar({
 }: {
   value: number;
   total: number;
-  accent: 'primary' | 'secondary' | 'disabled';
+  accent: 'primary' | 'secondary' | 'disabled' | 'team';
 }) {
   const pct = total > 0 ? (value / total) * 100 : 0;
   const fillColor =
     accent === 'primary'
-      ? colors.accentFrom
+      ? dashboardBarColors.focus
       : accent === 'secondary'
-        ? colors.accentTo
-        : colors.textDisabled;
+        ? dashboardBarColors.meetings
+        : accent === 'team'
+          ? dashboardBarColors.teams
+          : dashboardBarColors.idle;
   return (
     <View style={styles.barTrack}>
       <View
@@ -112,7 +127,7 @@ function WeeklySection({
         </View>
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
+            <Ionicons name="flash-outline" size={12} color={dashboardBarColors.focus} />
             <Text style={styles.metricLabel}>Foco</Text>
           </View>
           <MetricBar
@@ -121,12 +136,16 @@ function WeeklySection({
             accent="primary"
           />
           <Text style={styles.metricValue}>
-            {formatMinutes(categoryMetrics.deepWorkMinutes)}
+            {formatMetricValue(categoryMetrics.deepWorkMinutes)}
           </Text>
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="shuffle-outline" size={11} color={colors.textSecondary} />
+            <Ionicons
+              name="shuffle-outline"
+              size={12}
+              color={dashboardBarColors.meetings}
+            />
             <Text style={styles.metricLabel}>Reuniões</Text>
           </View>
           <MetricBar
@@ -135,12 +154,12 @@ function WeeklySection({
             accent="secondary"
           />
           <Text style={styles.metricValue}>
-            {formatMinutes(categoryMetrics.interruptionMinutes)}
+            {formatMetricValue(categoryMetrics.interruptionMinutes)}
           </Text>
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
+            <Ionicons name="time-outline" size={12} color={dashboardBarColors.idle} />
             <Text style={styles.metricLabel}>Sem sessão</Text>
           </View>
           <MetricBar
@@ -148,11 +167,10 @@ function WeeklySection({
             total={categoryMetrics.totalMinutes + weekIdleMinutes}
             accent="disabled"
           />
-          <Text style={styles.metricValue}>{formatMinutes(weekIdleMinutes)}</Text>
+          <Text style={styles.metricValue}>{formatMetricValue(weekIdleMinutes)}</Text>
         </View>
-      </View>
-
-      <View style={styles.card}>
+        <View style={styles.cardDivider} />
+        <Text style={styles.cardSubsectionLabel}>POR EQUIPE</Text>
         {teamMetrics.length === 0 ? (
           <Text style={styles.emptyText}>Nenhuma equipe registrada esta semana.</Text>
         ) : (
@@ -163,7 +181,7 @@ function WeeklySection({
                   {tm.teamName}
                 </Text>
               </View>
-              <MetricBar value={tm.minutes} total={total} accent="primary" />
+              <MetricBar value={tm.minutes} total={total} accent="team" />
               <Text style={styles.metricValue}>
                 {tm.percentage}% · {formatMinutes(tm.minutes)}
               </Text>
@@ -366,7 +384,7 @@ function TodaySection({
 
         <View style={styles.metricRow}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="flash-outline" size={11} color={colors.textSecondary} />
+            <Ionicons name="flash-outline" size={12} color={dashboardBarColors.focus} />
             <Text style={styles.metricLabel}>Foco</Text>
           </View>
           <MetricBar
@@ -375,12 +393,16 @@ function TodaySection({
             accent="primary"
           />
           <Text style={styles.metricValue}>
-            {formatMinutes(dailyMetrics.deepWorkMinutes)}
+            {formatMetricValue(dailyMetrics.deepWorkMinutes)}
           </Text>
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="shuffle-outline" size={11} color={colors.textSecondary} />
+            <Ionicons
+              name="shuffle-outline"
+              size={12}
+              color={dashboardBarColors.meetings}
+            />
             <Text style={styles.metricLabel}>Reuniões</Text>
           </View>
           <MetricBar
@@ -389,12 +411,12 @@ function TodaySection({
             accent="secondary"
           />
           <Text style={styles.metricValue}>
-            {formatMinutes(dailyMetrics.interruptionMinutes)}
+            {formatMetricValue(dailyMetrics.interruptionMinutes)}
           </Text>
         </View>
         <View style={[styles.metricRow, styles.metricRowSpaced]}>
           <View style={styles.metricLabelRow}>
-            <Ionicons name="time-outline" size={11} color={colors.textSecondary} />
+            <Ionicons name="time-outline" size={12} color={dashboardBarColors.idle} />
             <Text style={styles.metricLabel}>Sem sessão</Text>
           </View>
           <MetricBar
@@ -403,7 +425,7 @@ function TodaySection({
             accent="disabled"
           />
           <Text style={styles.metricValue}>
-            {formatMinutes(efficiency.todayIdleMinutes)}
+            {formatMetricValue(efficiency.todayIdleMinutes)}
           </Text>
         </View>
       </View>
@@ -536,45 +558,53 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...typography.sectionLabel,
-    color: colors.textSecondary,
+    color: colors.chipInactiveText,
   },
   card: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
+    borderRadius: 20,
     backgroundColor: colors.cardFrom,
-    padding: 14,
+    padding: 16,
   },
-  metricRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metricRowSpaced: { marginTop: 10 },
+  metricRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metricRowSpaced: { marginTop: 12 },
   metricRowBottom: { marginBottom: 8 },
-  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 84 },
-  teamLabel: { flexShrink: 1, ...typography.rowLabel, color: colors.textSecondary },
+  teamLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3, width: 92 },
+  teamLabel: { flexShrink: 1, ...typography.rowLabel, color: colors.chipInactiveText },
   metricLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    width: 84,
+    width: 92,
   },
   metricLabel: {
     ...typography.rowLabel,
-    color: colors.textSecondary,
+    color: colors.chipInactiveText,
   },
   metricValue: {
     fontSize: 11,
-    color: colors.textSecondary,
-    minWidth: 60,
+    color: colors.textPrimary,
+    minWidth: 72,
     textAlign: 'right',
   },
   barTrack: {
     flex: 1,
     height: 6,
-    backgroundColor: colors.chipInactiveBackground,
+    backgroundColor: dashboardBarColors.track,
     borderRadius: 3,
     overflow: 'hidden',
   },
   barFill: { height: 6, borderRadius: 3 },
   emptyText: { ...typography.rowLabel, color: colors.textSecondary },
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#2A2D42',
+    marginVertical: 16,
+  },
+  cardSubsectionLabel: {
+    ...typography.sectionLabel,
+    color: colors.chipInactiveText,
+    marginBottom: 10,
+  },
   chipsScroll: { marginVertical: 4 },
   chipsRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
   chipsRowWrap: {
@@ -638,7 +668,7 @@ const styles = StyleSheet.create({
   },
   todayHeaderUnit: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.chipInactiveText,
   },
   headerBarRow: {
     flexDirection: 'row',
@@ -655,13 +685,13 @@ const styles = StyleSheet.create({
   chartValue: { fontSize: 11, color: colors.textSecondary },
   chartBarTrack: {
     height: 6,
-    backgroundColor: colors.chipInactiveBackground,
+    backgroundColor: dashboardBarColors.personalTrack,
     borderRadius: 3,
     overflow: 'hidden',
   },
   chartBarFill: {
     height: 6,
-    backgroundColor: colors.success,
+    backgroundColor: dashboardBarColors.personal,
     borderRadius: 3,
   },
 });

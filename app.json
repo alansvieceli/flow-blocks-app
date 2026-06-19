@@ -3,7 +3,7 @@
     "name": "FlowBlocks",
     "slug": "flow-blocks-app",
     "scheme": "flow-blocks-app",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -17,7 +17,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": ["SCHEDULE_EXACT_ALARM"],
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.flowblocksapp"
