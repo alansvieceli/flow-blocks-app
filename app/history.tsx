@@ -12,6 +12,7 @@ import {
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { getCategoryLabel } from '../src/lib/categories';
 import { formatDuration } from '../src/lib/formatDuration';
+import { getLocalWeekEnd, getLocalWeekStart } from '../src/lib/localDate';
 import { useAppData } from '../src/state/AppDataProvider';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -58,7 +59,9 @@ function filterSessions(sessions: Session[], filter: FilterType): Session[] {
     const d = new Date(s.startedAt);
     if (filter === 'hoje') return isSameDay(d, now);
     if (filter === 'semana') {
-      return (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24) <= 7;
+      const weekStart = getLocalWeekStart(now);
+      const weekEnd = getLocalWeekEnd(now);
+      return d.getTime() >= weekStart.getTime() && d.getTime() <= weekEnd.getTime();
     }
     return (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24) <= 30;
   });

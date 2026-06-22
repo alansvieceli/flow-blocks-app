@@ -107,17 +107,23 @@ export function getWeeklyMetricsByTeam(
 }
 
 // Returns 7x24 matrix: rows = Mon(0)..Sun(6), cols = hour 0..23
+// Only includes sessions from the current week (Mon-Sun).
 export function getHeatmapData(
   sessions: Session[],
+  today: Date,
   options?: { teamId?: string; categoryId?: string },
 ): number[][] {
   const matrix: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0));
   const teamId = options?.teamId;
   const categoryId = options?.categoryId;
+  const weekStart = getLocalWeekStart(today);
+  const weekEnd = getLocalWeekEnd(today);
 
   for (const s of sessions) {
     if (teamId && s.teamId !== teamId) continue;
     if (categoryId && s.categoryId !== categoryId) continue;
+    const sessionTime = new Date(s.startedAt).getTime();
+    if (sessionTime < weekStart.getTime() || sessionTime > weekEnd.getTime()) continue;
     const d = new Date(s.startedAt);
     const jsDay = d.getDay(); // 0=Sun
     const displayDay = jsDay === 0 ? 6 : jsDay - 1; // Mon=0, Sun=6

@@ -209,7 +209,7 @@ function HeatmapSection({
 
   const matrix = useMemo(
     () =>
-      getHeatmapData(sessions, {
+      getHeatmapData(sessions, new Date(), {
         teamId: selectedTeamId ?? undefined,
         categoryId: selectedCategoryId ?? undefined,
       }),

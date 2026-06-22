@@ -158,7 +158,7 @@ describe('getWeeklyMetricsByTeam', () => {
 
 describe('getHeatmapData', () => {
   it('returns 7x24 matrix of zeros for empty sessions', () => {
-    const m = getHeatmapData([]);
+    const m = getHeatmapData([], TODAY);
     expect(m).toHaveLength(7);
     expect(m[0]).toHaveLength(24);
     expect(m.flat().every((v) => v === 0)).toBe(true);
@@ -166,12 +166,12 @@ describe('getHeatmapData', () => {
 
   it('places session in correct day/hour cell (Mon=0)', () => {
     // SESSION_MON_FOCUS starts 2026-06-15 09:00 UTC — 06:00 in America/Sao_Paulo
-    const m = getHeatmapData([SESSION_MON_FOCUS]);
+    const m = getHeatmapData([SESSION_MON_FOCUS], TODAY);
     expect(m[0][6]).toBe(60); // Mon, 06h local
   });
 
   it('filters by teamId when provided', () => {
-    const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], {
+    const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], TODAY, {
       teamId: 'teamB',
     });
     expect(m[0][6]).toBe(0); // teamA excluded
@@ -180,11 +180,16 @@ describe('getHeatmapData', () => {
   });
 
   it('filters by categoryId when provided', () => {
-    const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], {
+    const m = getHeatmapData([SESSION_MON_FOCUS, SESSION_TUE_MEETING], TODAY, {
       categoryId: 'foco_profundo',
     });
     expect(m[0][6]).toBe(60);
     expect(m[1][11]).toBe(0); // reunioes excluded
+  });
+
+  it('excludes sessions from last week', () => {
+    const m = getHeatmapData([SESSION_LAST_WEEK], TODAY);
+    expect(m.flat().every((v) => v === 0)).toBe(true);
   });
 });
 
