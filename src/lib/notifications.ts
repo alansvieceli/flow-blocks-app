@@ -119,3 +119,37 @@ export async function cancelAllNotifications(): Promise<void> {
     // ignore
   }
 }
+
+export async function scheduleSessionReminderNotification(opts: {
+  startedAt: string;
+  fireAt: number;
+}): Promise<string | null> {
+  if (!ExpoNotifications) return null;
+  try {
+    const trigger = new Date(opts.fireAt);
+    if (trigger.getTime() <= Date.now()) return null;
+    await ensureAndroidNotificationChannel();
+    const elapsedHours = Math.round(
+      (opts.fireAt - new Date(opts.startedAt).getTime()) / 3_600_000,
+    );
+    const body =
+      elapsedHours <= 1
+        ? 'Você tem uma sessão ativa há 1 hora. Toque para verificar.'
+        : `Você tem uma sessão ativa há ${elapsedHours} horas. Toque para verificar.`;
+    const notificationId = await ExpoNotifications.scheduleNotificationAsync({
+      content: {
+        title: 'Sessão em andamento',
+        body,
+        sound: 'default',
+      },
+      trigger: {
+        type: ExpoNotifications.SchedulableTriggerInputTypes.DATE,
+        date: trigger,
+        channelId: DEFAULT_CHANNEL_ID,
+      },
+    });
+    return notificationId;
+  } catch {
+    return null;
+  }
+}
