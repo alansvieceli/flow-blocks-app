@@ -92,6 +92,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   workStartHour: 8,
   workEndHour: 18,
   lunchDurationMinutes: 60,
+  sessionReminderIntervalMinutes: 60,
+  sessionReminderCount: 12,
 };
 
 function cutoffDate(months: number): Date {

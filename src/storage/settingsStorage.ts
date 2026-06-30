@@ -7,6 +7,8 @@ export interface AppSettings {
   workStartHour: number;
   workEndHour: number;
   lunchDurationMinutes: number;
+  sessionReminderIntervalMinutes: number | null;
+  sessionReminderCount: number;
 }
 
 const KEY = 'appSettings';
@@ -18,6 +20,8 @@ const DEFAULTS: AppSettings = {
   workStartHour: 8,
   workEndHour: 18,
   lunchDurationMinutes: 60,
+  sessionReminderIntervalMinutes: 60,
+  sessionReminderCount: 12,
 };
 
 export async function getSettings(): Promise<AppSettings> {

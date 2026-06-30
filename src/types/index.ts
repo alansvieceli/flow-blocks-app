@@ -29,6 +29,7 @@ export interface ActiveSession {
   categoryId: CategoryId;
   teamId: string | null;
   startedAt: string;
+  reminderNotificationIds?: string[];
 }
 
 export interface Reminder {
