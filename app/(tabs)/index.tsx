@@ -23,6 +23,7 @@ import { applyPersonalNudgeToDailyPlans } from '../../src/lib/personalNudge';
 import {
   cancelReminderNotification,
   scheduleNudgeNotification,
+  scheduleSessionReminderNotification,
 } from '../../src/lib/notifications';
 import { useAppData } from '../../src/state/AppDataProvider';
 import { colors } from '../../src/theme/colors';
@@ -289,12 +290,31 @@ export default function HomeScreen() {
 
   async function handleStart() {
     if (!canStart || !selectedCategory) return;
+    const startedAt = new Date().toISOString();
     const session: ActiveSession = {
       id: Date.now().toString(),
       categoryId: selectedCategory,
       teamId: selectedTeamId,
-      startedAt: new Date().toISOString(),
+      startedAt,
     };
+
+    const {
+      sessionReminderIntervalMinutes,
+      sessionReminderCount,
+      notificationsEnabled,
+    } = settings;
+
+    if (sessionReminderIntervalMinutes !== null && notificationsEnabled) {
+      const startMs = new Date(startedAt).getTime();
+      const ids: string[] = [];
+      for (let i = 1; i <= sessionReminderCount; i++) {
+        const fireAt = startMs + i * sessionReminderIntervalMinutes * 60_000;
+        const id = await scheduleSessionReminderNotification({ startedAt, fireAt });
+        if (id) ids.push(id);
+      }
+      session.reminderNotificationIds = ids;
+    }
+
     await setActiveSession(session);
     setElapsed(0);
     startTick(session.startedAt);
@@ -303,6 +323,15 @@ export default function HomeScreen() {
   async function handleStop() {
     if (!activeSession) return;
     stopTick();
+
+    if (activeSession.reminderNotificationIds?.length) {
+      await Promise.all(
+        activeSession.reminderNotificationIds.map((id) =>
+          cancelReminderNotification(id),
+        ),
+      );
+    }
+
     const endedAt = new Date().toISOString();
     const durationSeconds = elapsedSeconds(activeSession.startedAt);
     const newSession = {
