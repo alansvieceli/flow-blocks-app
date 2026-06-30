@@ -15,7 +15,7 @@ O usuário frequentemente esquece de iniciar o timer, mas sabe quanto tempo fico
 - **Trabalho**: cria uma `Session` com `startedAt`, `endedAt` e `durationSeconds` calculados; requer categoria e, se houver equipes cadastradas, equipe.
 - **Pessoal**: adiciona os minutos ao `PersonalDailyPlan` do dia selecionado, usando a mesma lógica do encerramento do nudge pessoal (`applyPersonalNudgeToDailyPlans`). Requer uma atividade pessoal selecionada.
 - **Acesso**: botão "✏️ Registrar tempo manualmente" abaixo do card de nudge na tela Início — sempre visível, independentemente do estado do nudge ou da sessão ativa.
-- **Duração via presets + custom**: 15m, 30m, 45m, 1h e campo livre. Padrão: nenhum selecionado.
+- **Duração via presets + custom**: 15m, 30m, 50m e campo livre. Padrão: nenhum selecionado.
 - **Feedback de horário**: exibir "Término estimado: HH:MM" em tempo real conforme o usuário edita início e duração.
 - **Após salvar**: voltar para a tela Início.
 
@@ -33,20 +33,20 @@ Rota nova, navegada via `router.push('/manual-entry')` a partir da tela Início.
 
 ### Campos
 
-| Campo             | Tipo                                     | Detalhe                                                                   |
-| ----------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
-| Tipo              | Toggle (Trabalho / Pessoal)              | Padrão: Trabalho                                                          |
-| Quando            | Toggle (Hoje / Ontem)                    | Padrão: Hoje                                                              |
-| Horário de início | Time picker nativo                       | Padrão: hora atual menos a duração selecionada (ou hora atual se nenhuma) |
-| Duração           | Presets (15m, 30m, 45m, 1h) + "outro..." | "outro..." abre campo numérico em minutos                                 |
-| Categoria         | `OptionPicker`                           | Visível somente no modo Trabalho                                          |
-| Equipe            | `OptionPicker`                           | Visível somente no modo Trabalho, obrigatório se equipes existirem        |
-| Atividade         | `OptionPicker`                           | Visível somente no modo Pessoal                                           |
+| Campo             | Tipo                                 | Detalhe                                                                   |
+| ----------------- | ------------------------------------ | ------------------------------------------------------------------------- |
+| Tipo              | Toggle (Trabalho / Pessoal)          | Padrão: Trabalho                                                          |
+| Quando            | Toggle (Hoje / Ontem)                | Padrão: Hoje                                                              |
+| Horário de início | Time picker nativo                   | Padrão: hora atual menos a duração selecionada (ou hora atual se nenhuma) |
+| Duração           | Presets (15m, 30m, 50m) + "outro..." | "outro..." abre campo numérico em minutos                                 |
+| Categoria         | `OptionPicker`                       | Visível somente no modo Trabalho                                          |
+| Equipe            | `OptionPicker`                       | Visível somente no modo Trabalho, obrigatório se equipes existirem        |
+| Atividade         | `OptionPicker`                       | Visível somente no modo Pessoal                                           |
 
 ### Exibição do término estimado
 
 ```
-Início: 14:00  +  45 min  →  "Término estimado: 14:45"
+Início: 14:00  +  50 min  →  "Término estimado: 14:50"
 ```
 
 Calculado em tempo real. Exibe `--` se duração não selecionada.
