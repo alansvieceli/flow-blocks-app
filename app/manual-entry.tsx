@@ -23,8 +23,7 @@ import { Session } from '../src/types';
 const DURATION_PRESETS = [
   { label: '15m', minutes: 15 },
   { label: '30m', minutes: 30 },
-  { label: '45m', minutes: 45 },
-  { label: '1h', minutes: 60 },
+  { label: '50m', minutes: 50 },
 ];
 
 function pad(n: number): string {
