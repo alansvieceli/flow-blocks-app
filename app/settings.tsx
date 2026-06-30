@@ -50,6 +50,23 @@ const LUNCH_OPTIONS = [
   { id: '90', label: '90 min' },
 ];
 
+const SESSION_REMINDER_INTERVAL_OPTIONS = [
+  { id: 'disabled', label: 'Desativado' },
+  { id: '30', label: '30 min' },
+  { id: '60', label: '1 hora' },
+  { id: '120', label: '2 horas' },
+  { id: '180', label: '3 horas' },
+];
+
+const SESSION_REMINDER_COUNT_OPTIONS = [
+  { id: '1', label: '1' },
+  { id: '2', label: '2' },
+  { id: '3', label: '3' },
+  { id: '6', label: '6' },
+  { id: '12', label: '12' },
+  { id: '24', label: '24' },
+];
+
 function ToggleRow({
   label,
   sublabel,
@@ -158,6 +175,32 @@ export default function SettingsScreen() {
           placeholder="Selecionar duração"
           selectedId={String(settings.lunchDurationMinutes ?? 60)}
         />
+
+        <SectionHeader title="SESSÃO ATIVA" style={styles.sectionHeader} />
+        <OptionPicker
+          label="Lembrete de sessão"
+          items={SESSION_REMINDER_INTERVAL_OPTIONS}
+          onSelect={(id) =>
+            update({
+              sessionReminderIntervalMinutes: id === 'disabled' ? null : Number(id),
+            })
+          }
+          placeholder="Selecionar intervalo"
+          selectedId={
+            settings.sessionReminderIntervalMinutes === null
+              ? 'disabled'
+              : String(settings.sessionReminderIntervalMinutes)
+          }
+        />
+        {settings.sessionReminderIntervalMinutes !== null && (
+          <OptionPicker
+            label="Quantidade de lembretes"
+            items={SESSION_REMINDER_COUNT_OPTIONS}
+            onSelect={(id) => update({ sessionReminderCount: Number(id) })}
+            placeholder="Selecionar quantidade"
+            selectedId={String(settings.sessionReminderCount)}
+          />
+        )}
 
         <View style={[styles.section, styles.sectionSpaced]}>
           <Pressable
