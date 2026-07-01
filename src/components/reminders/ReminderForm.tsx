@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   warningBox: {
     marginHorizontal: 16,
-    backgroundColor: '#2a1a0a',
+    backgroundColor: colors.alertCard,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.alert,

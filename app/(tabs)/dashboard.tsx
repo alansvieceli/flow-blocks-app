@@ -23,13 +23,13 @@ import { Category, Session, Team } from '../../src/types';
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const HOUR_LABELS = [0, 6, 12, 18];
 const dashboardBarColors = {
-  focus: '#A78BFA',
-  meetings: '#60A5FA',
-  idle: '#64748B',
-  teams: '#8B7AD8',
-  track: '#25263A',
-  personal: '#34D399',
-  personalTrack: '#1F3433',
+  focus: colors.barFocus,
+  meetings: colors.barMeetings,
+  idle: colors.barIdle,
+  teams: colors.barTeams,
+  track: colors.barTrack,
+  personal: colors.barPersonal,
+  personalTrack: colors.barPersonalTrack,
 } as const;
 
 function SectionTitle({
@@ -227,13 +227,14 @@ function HeatmapSection({
   function cellColor(val: number, dayIdx: number, hourIdx: number): string {
     if (val > 0) {
       const intensity = Math.min(val / maxVal, 1);
+      // RGB components of colors.accentFrom (#7c3aed)
       const r = Math.round(124 + (124 - 124) * intensity);
       const g = Math.round(58 * (1 - intensity));
       const b = Math.round(237 * intensity);
       const hex = (n: number) => n.toString(16).padStart(2, '0');
       return `#${hex(r)}${hex(g)}${hex(b)}`;
     }
-    if (isWorkCell(dayIdx, hourIdx)) return '#1e1e2e';
+    if (isWorkCell(dayIdx, hourIdx)) return colors.heatmapWorkCell;
     return colors.cardBorder;
   }
 
@@ -597,7 +598,7 @@ const styles = StyleSheet.create({
   emptyText: { ...typography.rowLabel, color: colors.textSecondary },
   cardDivider: {
     height: 1,
-    backgroundColor: '#2A2D42',
+    backgroundColor: colors.cardDivider,
     marginVertical: 16,
   },
   cardSubsectionLabel: {

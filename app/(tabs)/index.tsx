@@ -1109,9 +1109,9 @@ const styles = StyleSheet.create({
     color: colors.amberText,
   },
   sheetOptionEnd: {
-    backgroundColor: '#1f0a0a',
+    backgroundColor: colors.destructiveCard,
     borderWidth: 1,
-    borderColor: '#3a1010',
+    borderColor: colors.destructiveBorder,
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
@@ -1119,6 +1119,6 @@ const styles = StyleSheet.create({
   sheetOptionEndText: {
     ...typography.rowLabel,
     fontWeight: '600',
-    color: '#ff7070',
+    color: colors.destructiveText,
   },
 });
