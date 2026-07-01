@@ -36,3 +36,7 @@ A UI correction qualifies for this exception when it:
   - files changed
   - validation executed
   - pending items
+- Documentation update means, at minimum:
+  - Update `docs/app-context.md` (Roadmap + affected sections)
+  - Update `README.md` (Current App Behavior + Local Data if storage changed)
+  - See `docs/standards/spec-completion-policy.md` for the full gate

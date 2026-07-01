@@ -26,6 +26,8 @@ The user works for multiple teams (e.g. "Equipe X", "Equipe Y") — including ni
 - Spec 012 - Manual Time Entry: log a past work session by hand from Início, without starting a timer.
 - Spec 013 - Painel Reorder + Hoje Card: Hoje/Esta Semana moved to the top of Painel, removed the unused Sequência (streak) section, merged Hoje into a single card with a worked/available progress bar and a Foco/Reuniões/Sem sessão breakdown.
 - Spec 014 - Categoria de Foco Configurável: lets the user mark any category as "Foco" (`isFocus`) so custom categories are classified correctly as deep work instead of falling into "Reuniões".
+- Spec 015 - Session Reminder: configurable periodic local notifications while a work session is active. On session start, a batch of notifications is scheduled at a user-defined interval (default: every 60 min, up to 12 reminders). All pending reminders are cancelled automatically when the session is stopped. Interval and count are configured in Configurações under "Sessão ativa".
+- Spec 016 - Session Edit: each session row in Histórico has a pencil icon that opens the manual-entry screen in edit mode, allowing the user to correct start/end times (duration is recalculated automatically).
 - Work Schedule & Idle Time (`docs/superpowers/specs/2026-06-18-work-schedule-idle-design.md`): user-configurable daily work window (start/end hour, lunch duration) used to compute worked-vs-available efficiency for today/this week and to color idle heatmap cells.
 - Painel UX Review (`docs/superpowers/specs/2026-06-18-painel-ux-review-design.md`): removed the Trocas de Contexto and Alertas de Equipe sections (unreferenced/confusing metrics), added a "Sem sessão" breakdown row, and kept team rows showing `% · time`.
 
@@ -42,9 +44,9 @@ Out of scope for now: external integrations (GitHub/Jira/Calendar), backend/sync
 - `teams`: user-managed list of teams/projects (id, name, numeric order, optional max weekly % target).
 - `categories`: user-managed list of work block categories (id, label, numeric order, optional `isFocus` flag). The locked default category `Foco` always has `isFocus: true`; any other category can be marked "Conta como Foco" so its time is classified as deep work instead of falling into "Reuniões" in Painel charts. New installs start with `Reunião` and `Foco`.
 - `sessions`: recorded work blocks (category, team, timestamps, actual duration, optional note).
-- `active_session`: one currently running work session, mirrored into a persistent banner above the tab bar.
+- `active_session`: one currently running work session, mirrored into a persistent banner above the tab bar. Optionally carries `reminderNotificationIds` — the IDs of periodic reminder notifications scheduled at session start.
 - `active_nudge`: one currently running countdown nudge (personal or work), with start/end timestamps, original duration, notification id, and extension count.
-- `settings`: app settings, including whether reminder notifications are enabled, how many months of data to retain, how long an expired nudge can wait before being discarded as abandoned, and a daily work window (`workStartHour`, `workEndHour` in 30-minute increments, `lunchDurationMinutes`) used to compute work efficiency and idle time.
+- `settings`: app settings, including whether reminder notifications are enabled, how many months of data to retain, how long an expired nudge can wait before being discarded as abandoned, a daily work window (`workStartHour`, `workEndHour` in 30-minute increments, `lunchDurationMinutes`) used to compute work efficiency and idle time, and session reminder configuration (`sessionReminderIntervalMinutes`: null = disabled or minutes between reminders; `sessionReminderCount`: number of notifications to schedule per session, default 12).
 - `reminders`: scheduled one-off reminders (title, description, datetime, optional category/team, notification id).
 - `personalActivities`: user-defined leisure activities (id, name). New installs start with `Video Game` and `Estudo`.
 - `personalWeeklyTemplate`: recurring plan per weekday (activity + planned duration).

@@ -22,6 +22,15 @@ npm run check && npm run test:coverage
 
 The `src/lib/` coverage must remain above **80% statements**. If new business logic is added without tests and coverage drops below this threshold, write the missing tests before closing the spec.
 
+## Documentation Gate
+
+After passing all quality checks, update documentation **in the same commit as the last task**:
+
+1. **`docs/app-context.md`** — add the spec to the Roadmap list; update any affected section (Core Data Concepts, Primary Navigation, or a feature-specific section).
+2. **`README.md`** — update "Current App Behavior" for any user-visible change; update "Local Data" if new storage fields were added.
+
+If neither file needs changes (e.g. internal refactor with no user-visible behavior change), note that explicitly in the task file.
+
 ## When This Applies
 
 - After the last task of any spec is implemented and committed.

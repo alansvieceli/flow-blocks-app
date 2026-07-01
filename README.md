@@ -14,8 +14,9 @@ locally on the device with no backend, sync, authentication, or paid services.
 - Painel: a "Hoje" card (worked-vs-available progress with a Foco/Reuniões/Sem sessão breakdown), an "Esta Semana" section (same pattern plus a per-team breakdown), an hourly heatmap that also shades idle work hours, and a personal activity chart.
 - Lembretes: create, edit, delete, and schedule local reminders at the first instant of the selected minute.
 - Mais: access Equipes, Categorias, Histórico, Atividades, Template semanal, and Configurações.
-- Active work sessions show a running banner above the tab bar from every tab.
+- Active work sessions show a running banner above the tab bar from every tab. A session can send periodic reminder notifications (configurable interval and count) so the user is alerted if they forget to stop the timer; all pending reminders are cancelled automatically when the session is stopped.
 - Activity nudges can be started for personal or work activities, notify at the first instant of the target minute, and can be extended or ended; ending saves the selected/extended duration into the personal daily plan or work sessions.
+- Past work sessions can be edited from Histórico (pencil icon per row) to correct start/end times; duration is recalculated automatically.
 - Core local data is loaded through a shared app data provider to reduce tab flicker.
 - Personal daily plan entries can be pending, done, or not done; only done entries count in personal charts.
 - New installs start with category defaults `Reunião` and `Foco`, and personal activity defaults `Video Game` and `Estudo`; users can edit, order, or remove categories and teams. Any category can be marked "Conta como Foco" so its time counts as deep work in Painel charts instead of falling under "Reuniões".
@@ -84,9 +85,11 @@ The app stores data in AsyncStorage on the device:
 
 Calendar-based summaries use the device's local date and time. Settings control
 notification preference, data retention in months, how long an expired nudge
-can wait before being discarded as abandoned, and a daily work window (start
-hour, end hour, lunch duration) used by Painel to compute worked-vs-available
-efficiency and idle time. Start/end hour can be set in 30-minute increments
+can wait before being discarded as abandoned, a daily work window (start hour,
+end hour, lunch duration) used by Painel to compute worked-vs-available
+efficiency and idle time, and session reminder configuration (interval between
+reminders while a session is active, and how many reminders to schedule per
+session). Start/end hour can be set in 30-minute increments
 (e.g. `08:30`). Sessions, reminders, and personal daily plans are pruned
 according to the retention setting when app data is loaded or updated. The
 Settings screen also provides a reset action that clears local app data and
