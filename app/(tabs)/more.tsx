@@ -11,7 +11,7 @@ import { useAppData } from '../../src/state/AppDataProvider';
 
 // Flip to false before building for a physical device. Keep true only
 // while testing on the emulator — this gate is independent of __DEV__.
-const SHOW_DEV_SEED_BUTTON = true;
+const SHOW_DEV_SEED_BUTTON = false;
 
 export default function MoreScreen() {
   const router = useRouter();
